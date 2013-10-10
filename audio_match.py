@@ -5,5 +5,15 @@
 
 import sys
 
-file1 = open(sys.argv[0])
-file2 = open(sys.argv[1])
+def verifyArgs():
+	if len(sys.argv) != 3:
+		print("Wrong number of arguments")
+		quit()
+
+def match():
+	verifyArgs()
+	file1 = open(sys.argv[1])
+	file2 = open(sys.argv[2])
+
+
+match()
