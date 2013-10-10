@@ -19,7 +19,7 @@ def plotSpectrum(y,Fs):
 
 Fs = 44100;  # sampling rate
 
-rate,data=read('examples/hewlett.wav')
+rate,data=read('A4/hewlett.wav')
 y=data[:,1]
 lungime=len(y)
 timp=len(y)/44100.
