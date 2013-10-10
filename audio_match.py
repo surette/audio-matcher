@@ -9,16 +9,13 @@ import wave
 
 def verifyArgs():
 	if len(sys.argv) != 3:
-		print("Wrong number of arguments")
-		exit()
+		print("ERROR: Wrong number of arguments")
+		exit(1)
 
 def verifyPathToFile(path):
 	if not os.path.isfile(path):
-		print("Path "+path+" is invalid/is not a file")
-		exit()
-
-def verifyWavFile(aFile):
-	print "this checks if this is a wave file"	
+		print("ERROR: Path "+path+" is invalid/is not a file")
+		exit(2)
 
 def match():
 	verifyArgs()
@@ -27,18 +24,17 @@ def match():
 	file1 = None
 	file2 = None
 	try:
-		file1 = wave.open(sys.argv[1])
-		file2 = wave.open(sys.argv[2])
+		file1 = wave.open(sys.argv[1], 'r')
+		file2 = wave.open(sys.argv[2], 'r')
 	except wave.Error:
-		print "Files are not using the correct .wav format"
-		exit()
+		print "ERROR: Files are not using the correct .wav format"
+		exit(3)
 	except:
-		print "Error opening files"
-		exit()
-	verifyWavFile(file1)
-	verifyWavFile(file2)
+		print "ERROR: Error opening files"
+		exit(4)
 
 	file1.close()
 	file2.close()
+	exit(0)
 
 match()
