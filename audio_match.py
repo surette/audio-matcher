@@ -9,12 +9,12 @@ import wave
 
 def verifyArgs():
 	if len(sys.argv) != 3:
-		print("ERROR: Wrong number of arguments")
+		print "ERROR: Wrong number of arguments"
 		exit(1)
 
 def verifyPathToFile(path):
 	if not os.path.isfile(path):
-		print("ERROR: Path "+path+" is invalid/is not a file")
+		print "ERROR: Path "+path+" is invalid/is not a file"
 		exit(2)
 
 def match():
