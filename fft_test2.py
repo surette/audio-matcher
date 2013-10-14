@@ -60,11 +60,14 @@ def fftconvert(file):
    
    # the result array of fft for each second
    ffta = []
+   chunksize = framerate * nchannels
    print
-   for i in range(0, nframes):
-      waveData = file.readframes(1)
+   for i in range(0, nframes/chunksize):
+      waveData = file.readframes(chunksize)
       data = struct.unpack_from("<h", waveData)
       ffta.append(fftpack.fft(data))
+      print data
+      print fftpack.fft(data)
 
    # return the array of frequencies
    return ffta
