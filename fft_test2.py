@@ -57,6 +57,18 @@ def match():
    file2.close()
    exit(0)
 
+def open_wave_files(fpath1, fpath2):
+   try:
+      file1 = wave.open(fpath1, 'r')
+      file2 = wave.open(fpath2, 'r')
+      return file1, file2
+   except wave.Error:
+      print "ERROR: File is not using the correct .wav format"
+      exit(3)
+   except:
+      print "ERROR: Error opening files"
+      exit(4)
+
 def fftconvert(file):
 
    # store attributes of wav file
@@ -110,5 +122,6 @@ def highestMag(sec, low, high):
             score = mag
 
    return mag
-
-match()
+   
+if __name__ == '__main__':
+   match()
