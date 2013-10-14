@@ -42,7 +42,11 @@ def match():
    # converts the audio data to frequencies   
    file1_freq = fftconvert(file1) 
    file2_freq = fftconvert(file2)
-   
+
+   # get a list of tuple of significant magnitudes for second 
+   file1_mag = significantMags(file1_freq)
+   file2_mag = significantMags(file2_freq)
+
    # compare the two arrays of frequencies
    if compare(file1_freq, file2_freq):
       print "MATCH"
@@ -65,12 +69,26 @@ def fftconvert(file):
    for i in range(0, nframes/chunksize):
       waveData = file.readframes(chunksize)
       data = struct.unpack_from("<h", waveData)
-      ffta.append(fftpack.fft(data))
-      print data
-      print fftpack.fft(data)
+      mags = np.fft.fft(data)
+      freqs = np.fft.fftfreq(chunksize)
+      ffta.append(zip(mags, freqs))
+      print mags 
+      print freqs
 
    # return the array of frequencies
    return ffta
+
+def significantMags(fft):
+   result = []
+   for sec in fft:
+      tup = []
+      tup.append(highestMag(sec, 40, 80))
+      tup.append(highestMag(sec, 80, 120))
+      tup.append(highestMag(sec, 120, 180))
+      tup.append(highestMag(sec, 180, 300))
+      result.append(tup)
+
+   return result
 
 def compare(fft1, fft2):
    return isSubset(fft1, fft2) or isSubset(fft2, fft1)
@@ -81,12 +99,15 @@ def isSubset(list1, list2):
          return False
    return True
 
-def highestMag(freqs, low, high):	
+def highestMag(sec, low, high):	
+   for mag, freq in sec:
+      print mag
+      print freq
    score = 0
-   for freq in range(low, high):
-      mag = math.log(math.fabs(freqs[freq] + 1))
-      if mag > score:
-         score = mag
+   for mag, freq in sec:
+      if low <= freq <= high:
+         if mag > score:
+            score = mag
 
    return mag
 
