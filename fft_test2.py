@@ -80,8 +80,10 @@ def fftconvert(file):
    print
    for i in range(0, nframes/chunksize):
       waveData = file.readframes(chunksize)
-      data = struct.unpack_from("<h", waveData)
+      data = struct.unpack_from("%dh" % chunksize, waveData)
+      # print data
       mags = np.fft.fft(data)
+      mags = abs(np.fft.fft(data))**2
       freqs = np.fft.fftfreq(chunksize)
       ffta.append(zip(mags, freqs))
 
@@ -112,11 +114,12 @@ def isSubset(list1, list2):
 def highestMag(sec, low, high):	
    score = 0
    for mag, freq in sec:
+      # print mag, freq
       if low <= freq <= high:
          if mag > score:
             score = mag
-
-   return mag
+   print score
+   return score
    
 if __name__ == '__main__':
    match()
