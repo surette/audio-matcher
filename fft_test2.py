@@ -45,7 +45,6 @@ def match():
 
    # get a list of tuple of significant magnitudes for second 
    file1_mag = significantMags(file1_freq)
-   print "file2:"
    file2_mag = significantMags(file2_freq)
 
    # compare the two arrays of frequencies
@@ -81,7 +80,6 @@ def fftconvert(file):
    for i in range(0, nframes/chunksize):
       waveData = file.readframes(chunksize)
       data = struct.unpack_from("%dh" % chunksize, waveData)
-      # print data
       mags = abs(np.fft.fft(data))**2
       freqs = np.fft.fftfreq(chunksize)
       ffta.append(zip(mags, freqs))
@@ -108,22 +106,28 @@ def compare(fft1, fft2):
 #assumes list1 is the child/subset
 def isSubset(list1, list2):
    for val1 in list1:
-      # print val1
       found = False
       for val2 in list2:
-         # print val2
-         print "here"
          if eachisclose(val1, val2):
             found = True
-            print "is close"
             break
 
       if not found:
          return False
-      # if val not in list2:
-      #    return False
    return True
+
 def eachisclose(val1,val2):
+   for v1, v2 in zip(val1, val2):
+      ratio = 1
+      if v1 > v2:
+         ratio = v2/v1
+      else:
+         ratio = v1/v2
+      if ratio < 0.75:
+         return False
+   return True
+
+def eachisclose1(val1,val2):
    off = 1e10
 
    for v1,v2 in zip(val1,val2):
@@ -137,11 +141,9 @@ def eachisclose(val1,val2):
 def highestMag(sec, low, high):	
    score = 0
    for mag, freq in sec:
-      # print mag, freq
       if low <= freq < high:
          if mag > score:
             score = mag
-   # print score
    return score
    
 if __name__ == '__main__':
