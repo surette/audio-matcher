@@ -43,6 +43,25 @@ def match():
    file2_freq = fftconvert(file2)
    
    # trying to match subsets...
+   bigger = max(len(file1_freq,file2_freq))
+   if len(file1_freq) == bigger:
+      parent = file1_freq
+      child = file2_freq
+   if len(file2_freq) == bigger:
+      parent = file2_freq
+      child = file1_freq
+   else:
+      #don't do this
+      pass
+
+   matches_first = numpy.where(parent == child[0])
+   sub_match = False
+   for m in matches_first:
+      if numpy.array_equal(parent[m:len(child)], child):
+         sub_match = True
+
+
+   # first = file1_freq.index(file2_freq[0])
    # intersect = numpy.intersect1d(file1_freq, file2_freq)
    # print intersect
    # print file1_freq
@@ -52,8 +71,8 @@ def match():
    # compare the two arrays of frequencies
    if numpy.array_equal(file1_freq, file2_freq):
       print "MATCH"
-   elif subset:
-      print "MATCH"
+   elif sub_match:
+      print "SUB MATCH"
    else:
       print "NO MATCH"
       
