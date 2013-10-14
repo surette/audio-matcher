@@ -5,6 +5,7 @@ import wave
 import struct
 import sys
 import os
+import time 
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
@@ -49,14 +50,15 @@ def match():
    # subset = numpy.array_equal(file1_freq, intersect) or numpy.array_equal(file2_freq, intersect)
    # print subset
    
+   start = time.time()
    # compare the two arrays of frequencies
    if numpy.array_equal(file1_freq, file2_freq):
       print "MATCH"
-   elif subset:
-      print "MATCH"
    else:
       print "NO MATCH"
-      
+   end = time.time()
+   print "compare = " + str(end - start)
+   
    file1.close()
    file2.close()
    exit(0)
@@ -66,37 +68,48 @@ def fftconvert(file):
    # store attributes of wav file
    (nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
    
+   start = time.time()
    # i don't really know yet
    frames = file.readframes (nframes * nchannels)
+   end = time.time()
+   print "readframe = " + str(end - start)
    
+   start = time.time()
    # converts data in array somehow...research more
    out = struct.unpack_from ("%dh" % nframes * nchannels, frames)
+   end = time.time()
+   print "unpack = " + str(end - start)
+   
    
    # send the unpacked data through the fft
    # output is an array of complex numbers
    
-    
+   start = time.time() 
    ffta = fftpack.fft(out)
+   print ffta
+   end = time.time()
+   print "fft = " + str(end - start)
    
    # convert the values in the array retrieved from fft to freqeuncies
-   # freqs = numpy.fft.fftfreq(len(out))
+   freqs = numpy.fft.fftfreq(len(out))
+   print freqs
    
    
    # do we even need to convert the array into hertz?
    idx = numpy.argmax(numpy.abs(ffta)**2)
-   y = numpy.abs(ffta)**2
    freq = freqs[idx]
-   print w[15200]
+   print freqs[15200]
    
    # convert the frequency to hertz
    hertz = abs(freq*framerate)
    print hertz
    
    # convert each value in array to hertz
-   # x = 0
-   # while x < len(w):
-      # w[x] = abs(w[x] * framerate)
-      # x = x + 1
+   x = 0
+   while x < len(freqs):
+      freqs[x] = abs(freqs[x] * framerate)
+      x = x + 1
+   print freqs
    
    # return the array of frequencies in hertz
    return ffta
