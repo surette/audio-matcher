@@ -44,7 +44,7 @@ def match():
    file2_freq = fftconvert(file2)
    
    # compare the two arrays of frequencies
-   if compare(file1_freq, file2_freq):
+   if compare(file1_freq, file2_freq) or compare(file2_freq, file1_freq):
       print "MATCH"
    else:
       print "NO MATCH"
@@ -73,22 +73,10 @@ def fftconvert(file):
    return ffta
 
 def compare(fft1, fft2):
-   mags1 = []
-   mags2 = []
-   for freq in fft1:
-      mag = []
-      mag.append(highestMag(freq, 40, 80))
-      mag.append(highestMag(freq, 80, 120))
-      mag.append(highestMag(freq, 120, 180))
-      mag.append(highestMag(freq, 180, 300))
-      mags1.append(mag)
-   print mags1
-   mag1 = highestMag(fft1, 40, 80) == highestMag(fft2, 40, 80)
-   mag2 = highestMag(fft1, 80, 120) == highestMag(fft2, 80, 120)
-   mag3 = highestMag(fft1, 120, 180) == highestMag(fft2, 120, 180)
-   mag4 = highestMag(fft1, 180, 300) == highestMag(fft2, 180, 300)
-
-   return mag1 and mag2 and mag3 and mag4
+   for val in fft1:
+      if val not in fft2:
+         return False
+   return True
 
 def highestMag(freqs, low, high):	
    score = 0
