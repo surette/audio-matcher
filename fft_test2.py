@@ -48,7 +48,7 @@ def match():
    file2_mag = significantMags(file2_freq)
 
    # compare the two arrays of frequencies
-   if compare(file1_freq, file2_freq):
+   if compare(file1_mag, file2_mag):
       print "MATCH"
    else:
       print "NO MATCH"
@@ -84,8 +84,6 @@ def fftconvert(file):
       mags = np.fft.fft(data)
       freqs = np.fft.fftfreq(chunksize)
       ffta.append(zip(mags, freqs))
-      print mags 
-      print freqs
 
    # return the array of frequencies
    return ffta
@@ -112,9 +110,6 @@ def isSubset(list1, list2):
    return True
 
 def highestMag(sec, low, high):	
-   for mag, freq in sec:
-      print mag
-      print freq
    score = 0
    for mag, freq in sec:
       if low <= freq <= high:
