@@ -101,5 +101,6 @@ def highestMag(freqs, low, high):
          score = mag
 
    return mag
-
-match()
+   
+if __name__ == '__main__':
+   match()
