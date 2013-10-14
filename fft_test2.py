@@ -44,7 +44,7 @@ def match():
    file2_freq = fftconvert(file2)
    
    # compare the two arrays of frequencies
-   if compare(file1_freq, file2_freq) or compare(file2_freq, file1_freq):
+   if compare(file1_freq, file2_freq):
       print "MATCH"
    else:
       print "NO MATCH"
@@ -73,8 +73,11 @@ def fftconvert(file):
    return ffta
 
 def compare(fft1, fft2):
-   for val in fft1:
-      if val not in fft2:
+   return isSubset(fft1, fft2) or isSubset(fft2, fft1)
+
+def isSubset(list1, list2):
+   for val in list1:
+      if val not in list2:
          return False
    return True
 
