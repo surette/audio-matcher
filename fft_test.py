@@ -43,13 +43,6 @@ def match():
    file1_freq = fftconvert(file1) 
    file2_freq = fftconvert(file2)
    
-   # trying to match subsets...
-   # intersect = numpy.intersect1d(file1_freq, file2_freq)
-   # print intersect
-   # print file1_freq
-   # subset = numpy.array_equal(file1_freq, intersect) or numpy.array_equal(file2_freq, intersect)
-   # print subset
-   
    start = time.time()
    # compare the two arrays of frequencies
    if numpy.array_equal(file1_freq, file2_freq):
@@ -81,10 +74,9 @@ def fftconvert(file):
    print "unpack = " + str(end - start)
    
    
+   start = time.time() 
    # send the unpacked data through the fft
    # output is an array of complex numbers
-   
-   start = time.time() 
    ffta = fftpack.fft(out)
    print ffta
    end = time.time()
@@ -104,15 +96,18 @@ def fftconvert(file):
    hertz = abs(freq*framerate)
    print hertz
    
+   start = time.time()
    # convert each value in array to hertz
    x = 0
    while x < len(freqs):
       freqs[x] = abs(freqs[x] * framerate)
       x = x + 1
    print freqs
+   end = time.time()
+   print "Convert to Hz: " + str(end-start)
    
    # return the array of frequencies in hertz
-   return ffta
+   return freqs
     
    
 
