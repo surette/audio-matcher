@@ -1,11 +1,38 @@
 import scipy
-from scipy import fftpack
 import numpy as np
 import wave
 import struct
 import sys
 import os
 import math
+
+# checks to see if the two wave files are exactly the same
+def match(fpath1 = None, fpath2 = None):
+   verifyPathToFile(fpath1)
+   verifyPathToFile(fpath2)
+   file1 = None
+   file2 = None
+   
+   # makes sure the files are actually wave files
+   (file1, file2) = open_wave_files(fpath1, fpath2)
+
+   # close the files now
+   file1.close()
+   file2.close()
+   
+   # converts the audio data to frequencies   
+   file1_freq = fftconvert(file1) 
+   file2_freq = fftconvert(file2)
+
+   # get a list of tuple of significant magnitudes for second 
+   file1_mag = significantMags(file1_freq)
+   file2_mag = significantMags(file2_freq)
+
+   # compare the two arrays of frequencies
+   if compare(file1_mag, file2_mag):
+      return True
+   else:
+      return False
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
@@ -18,44 +45,6 @@ def verifyPathToFile(path):
    if not os.path.isfile(path):
       print("ERROR: Path "+path+" is invalid/is not a file")
       exit(2)
-
-# checks to see if the two wave files are exactly the same
-def match(fpath1 = None, fpath2 = None):
-   verifyPathToFile(fpath1)
-   verifyPathToFile(fpath2)
-   file1 = None
-   file2 = None
-   
-   # makes sure the files are actually wave files
-   try:
-      file1 = wave.open(fpath1, 'r')
-      file2 = wave.open(fpath2, 'r')
-   except wave.Error:
-      print "ERROR: File is not using the correct .wav format"
-      exit(3)
-   except:
-      print "ERROR: Error opening files"
-      exit(4)
-   
-   # converts the audio data to frequencies   
-   file1_freq = fftconvert(file1) 
-   file2_freq = fftconvert(file2)
-
-   # get a list of tuple of significant magnitudes for second 
-   file1_mag = significantMags(file1_freq)
-   file2_mag = significantMags(file2_freq)
-
-   # compare the two arrays of frequencies
-   match = False
-   if compare(file1_mag, file2_mag):
-      match = True
-   else:
-      match = False
-      
-   file1.close()
-   file2.close()
-   
-   return match
 
 def open_wave_files(fpath1, fpath2):
    try:
@@ -70,7 +59,6 @@ def open_wave_files(fpath1, fpath2):
       exit(4)
 
 def fftconvert(file):
-
    # store attributes of wav file
    (nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
    
@@ -120,6 +108,7 @@ def isSubset(list1, list2):
       # if val not in list2:
       #    return False
    return True
+
 def eachisclose(val1,val2):
    off = 1e10
 
@@ -129,7 +118,6 @@ def eachisclose(val1,val2):
       else:
          return False
    return True
-
 
 def highestMag(sec, low, high):	
    score = 0
