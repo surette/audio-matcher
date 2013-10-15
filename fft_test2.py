@@ -43,7 +43,6 @@ def match(fpath1 = None, fpath2 = None):
 
    # get a list of tuple of significant magnitudes for second 
    file1_mag = significantMags(file1_freq)
-   print "file2:"
    file2_mag = significantMags(file2_freq)
 
    # compare the two arrays of frequencies
@@ -112,10 +111,8 @@ def isSubset(list1, list2):
       found = False
       for val2 in list2:
          # print val2
-         print "here"
          if eachisclose(val1, val2):
             found = True
-            print "is close"
             break
 
       if not found:
