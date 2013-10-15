@@ -7,8 +7,6 @@ import sys
 import os
 import math
 
-# Note from Bryan: Does not work when you up the bit rate
-
 # make sure there is the correct number of arguments given
 def verifyArgs():
    if len(sys.argv) != 3:
@@ -22,18 +20,16 @@ def verifyPathToFile(path):
       exit(2)
 
 # checks to see if the two wave files are exactly the same
-def match():
-
-   verifyArgs()
-   verifyPathToFile(sys.argv[1])
-   verifyPathToFile(sys.argv[2])
+def match(fpath1 = None, fpath2 = None):
+   verifyPathToFile(fpath1)
+   verifyPathToFile(fpath2)
    file1 = None
    file2 = None
    
    # makes sure the files are actually wave files
    try:
-      file1 = wave.open(sys.argv[1], 'r')
-      file2 = wave.open(sys.argv[2], 'r')
+      file1 = wave.open(fpath1, 'r')
+      file2 = wave.open(fpath2, 'r')
    except wave.Error:
       print "ERROR: File is not using the correct .wav format"
       exit(3)
@@ -41,29 +37,27 @@ def match():
       print "ERROR: Error opening files"
       exit(4)
    
-   # Sends the opened wave files to fftconvert
-   file1_freq = fftconvert(file1)
+   # converts the audio data to frequencies   
+   file1_freq = fftconvert(file1) 
    file2_freq = fftconvert(file2)
 
-   # sends the array obtained from fftconvert to significant mags
-   # retuns arrays of "important" frequencies
+   # get a list of tuple of significant magnitudes for second 
    file1_mag = significantMags(file1_freq)
+   print "file2:"
    file2_mag = significantMags(file2_freq)
 
-   # compare the two arrays of "important" frequencies
+   # compare the two arrays of frequencies
+   match = False
    if compare(file1_mag, file2_mag):
-      print "MATCH"
+      match = True
    else:
-      print "NO MATCH"
-   
-   # makes sure to close the files    
+      match = False
+      
    file1.close()
    file2.close()
-   exit(0)
+   
+   return match
 
-# opens the wave files
-# if they are not wave files, return error saying so
-# any other failure return an error as well
 def open_wave_files(fpath1, fpath2):
    try:
       file1 = wave.open(fpath1, 'r')
@@ -76,40 +70,27 @@ def open_wave_files(fpath1, fpath2):
       print "ERROR: Error opening files"
       exit(4)
 
-# Separates wav audio data into chunks
-# Send each chunk through the fft
-# returns an array of interleaved magnitude and frequency data
 def fftconvert(file):
 
    # store attributes of wav file
    (nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
-   # the result array of fft for each second
-   fftchunks = []
-   # one second of audio
-   chunksize = framerate * nchannels  
    
-   # for loop will iteratively read the wav file
-   # it will send data to the fft in equal chunk
-   # it will put the results in fftchunks             
+   # the result array of fft for each second
+   ffta = []
+   chunksize = framerate * nchannels
    for i in range(0, nframes/chunksize):
       waveData = file.readframes(chunksize)
       data = struct.unpack_from("%dh" % chunksize, waveData)
+      # print data
       mags = abs(np.fft.fft(data))**2
       freqs = np.fft.fftfreq(chunksize)
-      fftchunks.append(zip(mags, freqs))
+      ffta.append(zip(mags, freqs))
 
    # return the array of frequencies
-   return fftchunks
+   return ffta
 
-# Finds the four 'important' magnitudes in the chunk
-# Creates tuple of these four magnitudes that will be stored in an array
 def significantMags(fft):
-
    result = []
-   
-   # for loop will iteratively send sections of the fftchunks
-   # to highestMag to get the most "important" magnitude of the section.
-   # These will be appended to tup, in the end having four mags for each chunk
    for sec in fft:
       tup = []
       tup.append(highestMag(sec, -0.5, -0.25))
@@ -124,65 +105,50 @@ def significantMags(fft):
 def compare(fft1, fft2):
    return isSubset(fft1, fft2) or isSubset(fft2, fft1)
 
-# assumes list1 is the child/subset
-# checks to see if one wav file is subset of the other
+#assumes list1 is the child/subset
 def isSubset(list1, list2):
-
    for val1 in list1:
+      # print val1
       found = False
-      
       for val2 in list2:
+         # print val2
+         print "here"
          if eachisclose(val1, val2):
             found = True
+            print "is close"
             break
 
       if not found:
          return False
-         
+      # if val not in list2:
+      #    return False
    return True
-
-# creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
-
-   for v1, v2 in zip(val1, val2):
-      ratio = 1
-      if v1 > v2:
-         ratio = v2/v1
-      else:
-         ratio = v1/v2
-      if ratio < 0.75:
-         return False
-         
-   return True
-
-# is this ever used?
-def eachisclose1(val1,val2):
-
    off = 1e10
-   
+
    for v1,v2 in zip(val1,val2):
-      if -off <= v1-v2 <= off:
+      if -off <= v1-v2 <=  off:
          pass
       else:
          return False
-         
    return True
 
-# finds the highest magnitude of a frequency in this section
-# retrieves the "important" mag for our tuple in significantMags
+
 def highestMag(sec, low, high):	
-   
-   # remembers highest mag to be returned
    score = 0
-   
    for mag, freq in sec:
+      # print mag, freq
       if low <= freq < high:
          if mag > score:
             score = mag
-            
+   # print score
    return score
-
-
    
 if __name__ == '__main__':
-   match()
+   verifyArgs()
+   matches = match(sys.argv[1], sys.argv[2])
+   if matches:
+      print "MATCH"
+   else:
+      print "NO MATCH"
+   exit(0)
