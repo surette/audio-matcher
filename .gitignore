@@ -1,1 +1,8 @@
-*.pyc
+## OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+## Python
+*.py[cod]
