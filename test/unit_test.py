@@ -5,15 +5,15 @@ import time
 import unittest
 
 sys.path.append('../')
-import fft_test2
+import audio_match as p4500
 
 class TestBasics(unittest.TestCase):
 	
 	def test_is_a_self_match(self):
-		self.assertTrue(fft_test2.match('../A4/x1.wav', '../A4/x1.wav'))
+		self.assertTrue(p4500.match('../A4/x1.wav', '../A4/x1.wav'))
 
 	def test_is_not_a_match(self):
-		self.assertFalse(fft_test2.match('../A4/x1.wav', '../A4/x10.wav'))
+		self.assertFalse(p4500.match('../A4/x1.wav', '../A4/x10.wav'))
 
 if __name__ == '__main__':
 	unittest.main()
