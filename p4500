@@ -1,11 +1,10 @@
 #!/usr/bin/python
-import scipy
-import numpy as np
-import wave
-import struct
 import sys
 import os
 import math
+import numpy as np
+import wave
+import struct
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
