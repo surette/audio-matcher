@@ -15,14 +15,14 @@ def match(fpath1 = None, fpath2 = None):
    
    # makes sure the files are actually wave files
    (file1, file2) = open_wave_files(fpath1, fpath2)
+  
+   # converts the audio data to frequencies   
+   file1_freq = fftconvert(file1) 
+   file2_freq = fftconvert(file2)
 
    # close the files now
    file1.close()
    file2.close()
-   
-   # converts the audio data to frequencies   
-   file1_freq = fftconvert(file1) 
-   file2_freq = fftconvert(file2)
 
    # get a list of tuple of significant magnitudes for second 
    file1_mag = significantMags(file1_freq)
