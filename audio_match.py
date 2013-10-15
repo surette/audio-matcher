@@ -109,13 +109,15 @@ def isSubset(list1, list2):
       #    return False
    return True
 
+# creates tolerance for acceptance as a derived file 
 def eachisclose(val1,val2):
-   off = 1e10
-
-   for v1,v2 in zip(val1,val2):
-      if -off <= v1-v2 <=  off:
-         pass
+   for v1, v2 in zip(val1, val2):
+      ratio = 1
+      if v1 > v2:
+         ratio = v2/v1
       else:
+         ratio = v1/v2
+      if ratio < 0.75:
          return False
    return True
 
