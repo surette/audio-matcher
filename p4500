@@ -37,7 +37,7 @@ def match(fpath1 = None, fpath2 = None):
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
-   if len(sys.argv) != 3:
+   if len(sys.argv) != 5:
       sys.stderr.write("ERROR: Wrong number of arguments")
       exit(1)
 
