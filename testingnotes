@@ -1,0 +1,18 @@
+Brief Testing 10/15/13
+Bryan Swords
+
+
+Comparing a 16-bit audio file against the same audio file, 
+only 24-bit, produces a NO MATCH
+
+Comparing a 16-but audio file with the same 16-but audio file, 
+only the left and right channels have been switched, produces a NO MATCH
+-----> I feel like we will have to create a check: if nchannels is 2, 
+define left as file[0::2] and right as file[1::2] and send both 
+separately to get processed and filtered down by our functions. 
+If nchannels is 1 (mono) we still define left and right, only 
+they will be the same thing. We then compare all possible combos of 
+left and right between the two files
+
+Comparing a 16-but audio file against the same 16-but audio file, 
+only inverted, produces a MATCH (this is a good thing)

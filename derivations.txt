@@ -1,0 +1,20 @@
+trouble
+	x1 (6 seconds)
+	x2 (6 seconds)
+	x3 (6 seconds)
+	x4 (150.2 seconds)
+	x5 (150.2 seconds)
+	x6 (150.2 seconds)
+
+wayfaring
+	x7 (44 seconds)
+	x8 (44 seconds)
+	x9 (44 seconds)
+
+hewlett
+	x10 (54 seconds)
+	x11 (51 seconds)
+	x12 (78 seconds)
+
+x11
+	x10 (3 seconds)
