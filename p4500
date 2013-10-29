@@ -5,6 +5,7 @@ import math
 import numpy as np
 import wave
 import struct
+import subprocess
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
