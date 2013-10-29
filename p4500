@@ -5,7 +5,6 @@ import math
 import numpy as np
 import wave
 import struct
-import argparse
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -14,6 +13,12 @@ def match(fpath1 = None, fpath2 = None):
    file1 = None
    file2 = None
    
+   # check if any of the files is mp3 file. If it is, convert it to wav
+   if(isMp3(fpath1)):
+      fpath1 = convertToMp3(fpath1)
+   if(isMp3(fpath2)):
+      fpath2 = convertToMp3(fpath2)
+
    # makes sure the files are actually wave files
    (file1, file2) = open_wave_files(fpath1, fpath2)
   
@@ -39,7 +44,7 @@ def match(fpath1 = None, fpath2 = None):
 def verifyArgs():
    #verify that there are the correct number of arguements
    if len(sys.argv) != 5:
-      sys.stderr.write("ERROR: Wrong number of arguments")
+      sys.stderr.write("ERROR: Wrong number of arguments\n")
       exit(1)
    # Verify that all the flags are correct
    if sys.argv[1] != '-f' or sys.argv[3] != '-f':
@@ -49,8 +54,19 @@ def verifyArgs():
 # make sure the input is a real file
 def verifyPathToFile(path):
    if not os.path.isfile(path):
-      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file")
+      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
       exit(2)
+
+# checks whether the file is mp3 or not
+def isMp3(fpath):
+   return fpath.lower().endswith('.mp3')
+
+# converts the given mp3 file to a wav file and saves it to /tmp, it returns the wav file's path
+def convertToMp3(fpath):
+   newName = "/tmp/" + string.replace(fpath, ".mp3", ".wav")
+   cmd = "lame --decode "+ fpath + " " + newName
+   subprocess.call(cmd, shell=True)
+   return newName
 
 def open_wave_files(fpath1, fpath2):
    try:
@@ -58,10 +74,10 @@ def open_wave_files(fpath1, fpath2):
       file2 = wave.open(fpath2, 'r')
       return file1, file2
    except wave.Error:
-      sys.stderr.write("ERROR: File is not using the correct .wav format")
+      sys.stderr.write("ERROR: File is not using the correct .wav format\n")
       exit(3)
    except:
-      sys.stderr.write("ERROR: Error opening files")
+      sys.stderr.write("ERROR: Error opening files\n")
       exit(4)
 
 def fftconvert(file):
