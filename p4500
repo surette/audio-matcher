@@ -5,6 +5,7 @@ import math
 import numpy as np
 import wave
 import struct
+#import lame
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -13,6 +14,12 @@ def match(fpath1 = None, fpath2 = None):
    file1 = None
    file2 = None
    
+   # check if any of the files is mp3 file. If it is, convert it to wav
+   if(isMp3(fpath1)):
+      fpath1 = convertToMp3(fpath1)
+   if(isMp3(fpath2)):
+      fpath2 = convertToMp3(fpath2)
+
    # makes sure the files are actually wave files
    (file1, file2) = open_wave_files(fpath1, fpath2)
   
@@ -45,6 +52,17 @@ def verifyPathToFile(path):
    if not os.path.isfile(path):
       sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file")
       exit(2)
+
+# checks whether the file is mp3 or not
+def isMp3(fpath):
+   return fpath.lower().endswith('.mp3')
+
+# converts the given mp3 file to a wav file and saves it to /tmp, it returns the wav file's path
+def convertToMp3(fpath):
+   newName = "/tmp/" + string.replace(fpath, ".mp3", ".wav")
+   cmd = "lame --decode "+ fpath + " " + newName
+   subprocess.call(cmd, shell=True)
+   return newName
 
 def open_wave_files(fpath1, fpath2):
    try:
