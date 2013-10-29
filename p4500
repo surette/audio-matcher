@@ -5,6 +5,7 @@ import math
 import numpy as np
 import wave
 import struct
+import argparse
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -133,7 +134,7 @@ def highestMag(sec, low, high):
    
 if __name__ == '__main__':
    verifyArgs()
-   matches = match(sys.argv[1], sys.argv[2])
+   matches = match(sys.argv[2], sys.argv[4])
    if matches:
       print "MATCH"
    else:
