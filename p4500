@@ -59,7 +59,7 @@ def isMp3(fpath):
 # converts the given mp3 file to a wav file and saves it to /tmp, it returns the wav file's path
 def convertToMp3(fpath):
    newName = "/tmp/" + string.replace(fpath, ".mp3", ".wav")
-   cmd = "lame --decode "+ fpath + " " + newName
+   cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
    subprocess.call(cmd, shell=True)
    return newName
 
