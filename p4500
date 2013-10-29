@@ -37,9 +37,14 @@ def match(fpath1 = None, fpath2 = None):
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
+   #verify that there are the correct number of arguements
    if len(sys.argv) != 5:
       sys.stderr.write("ERROR: Wrong number of arguments")
       exit(1)
+   # Verify that all the flags are correct
+   if sys.argv[1] != '-f' or sys.argv[3] != '-f':
+      sys.stderr.write("ERROR: Incorrect Flags")
+      exit(3)
 
 # make sure the input is a real file
 def verifyPathToFile(path):
