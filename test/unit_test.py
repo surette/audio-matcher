@@ -3,13 +3,13 @@
 import sys
 import time
 import unittest
+import imp
 
 # dir = os.path.dirname(__file__)
 # filename = os.path.join(dir, '../')
 # print filename
 
-sys.path.append('../')
-import audio_match as p4500
+p4500 = imp.load_source("p4500", "../p4500")
 
 class TestBasics(unittest.TestCase):
 
