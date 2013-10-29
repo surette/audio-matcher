@@ -44,13 +44,13 @@ def match(fpath1 = None, fpath2 = None):
 # make sure there is the correct number of arguments given
 def verifyArgs():
    if len(sys.argv) != 3:
-      sys.stderr.write("ERROR: Wrong number of arguments")
+      sys.stderr.write("ERROR: Wrong number of arguments\n")
       exit(1)
 
 # make sure the input is a real file
 def verifyPathToFile(path):
    if not os.path.isfile(path):
-      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file")
+      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
       exit(2)
 
 # checks whether the file is mp3 or not
@@ -70,10 +70,10 @@ def open_wave_files(fpath1, fpath2):
       file2 = wave.open(fpath2, 'r')
       return file1, file2
    except wave.Error:
-      sys.stderr.write("ERROR: File is not using the correct .wav format")
+      sys.stderr.write("ERROR: File is not using the correct .wav format\n")
       exit(3)
    except:
-      sys.stderr.write("ERROR: Error opening files")
+      sys.stderr.write("ERROR: Error opening files\n")
       exit(4)
 
 def fftconvert(file):
