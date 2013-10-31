@@ -85,8 +85,8 @@ def open_wave_files(fpath1, fpath2):
 
 def fftconvert(file):
    # store attributes of wav file
-   (nchannels, sampwidth, framerate, nframes, comptype, compname) =
-   file.getparams()
+   (nchannels, sampwidth, framerate, nframes, comptype, compname) \
+   = file.getparams()
 
    # the result array of fft for each second
    ffta = []
