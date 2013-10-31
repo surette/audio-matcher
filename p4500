@@ -103,11 +103,7 @@ def fftconvert(file):
 def significantMags(fft):
    result = []
    for sec in fft:
-      tup = []
-      tup.append(highestMag(sec, -0.5, -0.25))
-      tup.append(highestMag(sec, -0.25, 0))
-      tup.append(highestMag(sec, 0, 0.25))
-      tup.append(highestMag(sec, 0.25, 0.5))
+      tup = highestMag(sec)
       result.append(tup)
 
    return result
@@ -145,15 +141,37 @@ def eachisclose(val1,val2):
          return False
    return True
 
-def highestMag(sec, low, high):	
-   score = 0
-   for mag, freq in sec:
-      # print mag, freq
-      if low <= freq < high:
-         if mag > score:
-            score = mag
-   # print score
-   return score
+#takes a chunk and returns a tuple of highest value within each of 4 buckets
+#Returns: [#,#,#,#]
+def highestMag(sec):
+    # bucket1: -0.5, -0.25
+    # bucket2: -0.25, 0
+    # bucket3: 0, 0.25
+    # bucket4: 0.25, 0.5
+    bound0 = -0.5
+    bound1 = -0.25
+    bound2 = 0
+    bound3 = 0.25
+    bound4 = 0.5
+
+    max_bucket1, max_bucket2, max_bucket3, max_bucket4 = -0.5, -0.5, -0.5, -0.5
+
+    #loop through the chunk, determining the the magnitude is a max in any of the buckets
+    for mag, freq in sec:
+        if bound0 <= freq < bound1:
+            if mag > max_bucket1:
+                max_bucket1 = mag
+        elif bound1 <= freq < bound2:
+            if mag > max_bucket2:
+                max_bucket2 = mag        
+        elif bound2 <= freq < bound3:
+            if mag > max_bucket3:
+                max_bucket3 = mag        
+        elif bound3 <= freq <= bound4:
+            if mag > max_bucket4:
+                max_bucket4 = mag
+
+    return max_bucket1, max_bucket2, max_bucket3, max_bucket4
    
 if __name__ == '__main__':
    verifyArgs()
