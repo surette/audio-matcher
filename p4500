@@ -9,157 +9,167 @@ import subprocess
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
-   verifyPathToFile(fpath1)
-   verifyPathToFile(fpath2)
-   file1 = None
-   file2 = None
-   
-   # check if any of the files is mp3 file. If it is, convert it to wav
-   if(isMp3(fpath1)):
-      fpath1 = convertToWav(fpath1)
-   if(isMp3(fpath2)):
-      fpath2 = convertToWav(fpath2)
+	verifyPathToFile(fpath1)
+	verifyPathToFile(fpath2)
+	file1 = None
+	file2 = None
 
-   # makes sure the files are actually wave files
-   (file1, file2) = open_wave_files(fpath1, fpath2)
-  
-   # converts the audio data to frequencies   
-   file1_freq = fftconvert(file1) 
-   file2_freq = fftconvert(file2)
+	# check if any of the files is mp3 file. If it is, convert it to wav
+	if(isMp3(fpath1)):
+		fpath1 = convertToWav(fpath1)
+	if(isMp3(fpath2)):
+		fpath2 = convertToWav(fpath2)
 
-   # close the files now
-   file1.close()
-   file2.close()
+	# makes sure the files are actually wave files
+	(file1, file2) = open_wave_files(fpath1, fpath2)
 
-   # get a list of tuple of significant magnitudes for second 
-   file1_mag = significantMags(file1_freq)
-   file2_mag = significantMags(file2_freq)
+	# converts the audio data into mono
+	file1 = convertToMono(file1)
+	file2 = convertToMono(file2)
 
-   # compare the two arrays of frequencies
-   if compare(file1_mag, file2_mag):
-      return True
-   else:
-      return False
+	# converts the audio data to frequencies   
+	file1_freq = fftconvert(file1) 
+	file2_freq = fftconvert(file2)
 
-# make sure there is the correct number of arguments given
-def verifyArgs():
-   #verify that there are the correct number of arguements
-   if len(sys.argv) != 5:
-      sys.stderr.write("ERROR: Wrong number of arguments\n")
-      exit(1)
-   # Verify that all the flags are correct
-   if sys.argv[1] != '-f' or sys.argv[3] != '-f':
-      sys.stderr.write("ERROR: Incorrect Flags\n")
-      exit(3)
+	# close the files now
+	file1.close()
+	file2.close()
+
+	# get a list of tuple of significant magnitudes for second 
+	file1_mag = significantMags(file1_freq)
+	file2_mag = significantMags(file2_freq)
+
+	# compare the two arrays of frequencies
+	if compare(file1_mag, file2_mag):
+		return True
+	else:
+		return False
+
+	# make sure there is the correct number of arguments given
+	def verifyArgs():
+	#verify that there are the correct number of arguements
+	if len(sys.argv) != 5:
+		sys.stderr.write("ERROR: Wrong number of arguments\n")
+		exit(1)
+	# Verify that all the flags are correct
+	if sys.argv[1] != '-f' or sys.argv[3] != '-f':
+		sys.stderr.write("ERROR: Incorrect Flags\n")
+	exit(3)
 
 # make sure the input is a real file
 def verifyPathToFile(path):
-   if not os.path.isfile(path):
-      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-      exit(2)
+	if not os.path.isfile(path):
+		sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
+		exit(2)
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
-   return fpath.lower().endswith('.mp3')
+	return fpath.lower().endswith('.mp3')
 
 # converts the given wav file to an mp3 file and saves it to /tmp, it returns the wav file's path
 def convertToWav(fpath):
-   name = fpath.rpartition('/')[2].split('.')[0]
-   newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
-   cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
-   subprocess.call(cmd, shell=True)
+	name = fpath.rpartition('/')[2].split('.')[0]
+	newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+	cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
+	subprocess.call(cmd, shell=True)
    return newName
 
 def open_wave_files(fpath1, fpath2):
-   try:
-      file1 = wave.open(fpath1, 'r')
-      file2 = wave.open(fpath2, 'r')
-      return file1, file2
-   except wave.Error:
-      sys.stderr.write("ERROR: File is not using the correct .wav format\n")
-      exit(3)
-   except:
-      sys.stderr.write("ERROR: Error opening files\n")
-      exit(4)
+	try:
+	   file1 = wave.open(fpath1, 'r')
+	   file2 = wave.open(fpath2, 'r')
+	return file1, file2
+	except wave.Error:
+		sys.stderr.write("ERROR: File is not using the correct .wav format\n")
+		exit(3)
+	except:
+		sys.stderr.write("ERROR: Error opening files\n")
+		exit(4)
+
+# if the audio file is not a mono channel, change it to mono and return it, otherwise, return the same file
+def convertToMono(audio):
+	#store attributes of wav file	
+	(nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
+	
+	if nchannels != 1:
+		
+
+	else:
+		return audio
 
 def fftconvert(file):
-   # store attributes of wav file
-   (nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
-   
-   # the result array of fft for each second
-   ffta = []
-   chunksize = framerate * nchannels
-   for i in range(0, nframes/chunksize):
-      waveData = file.readframes(chunksize)
-      data = struct.unpack_from("%dh" % chunksize, waveData)
-      # print data
-      mags = abs(np.fft.fft(data))**2
-      freqs = np.fft.fftfreq(chunksize)
-      ffta.append(zip(mags, freqs))
+	# store attributes of wav file
+	(nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
 
-   # return the array of frequencies
-   return ffta
+	# the result array of fft for each second
+	ffta = []
+	chunksize = framerate * nchannels
+	for i in range(0, nframes/chunksize):
+		waveData = file.readframes(chunksize)
+		data = struct.unpack_from("%dh" % chunksize, waveData)
+		mags = abs(np.fft.fft(data))**2
+		freqs = np.fft.fftfreq(chunksize)
+		ffta.append(zip(mags, freqs))
+
+	# return the array of frequencies
+	return ffta
 
 def significantMags(fft):
-   result = []
-   for sec in fft:
-      tup = []
-      tup.append(highestMag(sec, -0.5, -0.25))
-      tup.append(highestMag(sec, -0.25, 0))
-      tup.append(highestMag(sec, 0, 0.25))
-      tup.append(highestMag(sec, 0.25, 0.5))
-      result.append(tup)
-
-   return result
+	result = []
+	for sec in fft:
+		tup = []
+		tup.append(highestMag(sec, -0.5, -0.25))
+		tup.append(highestMag(sec, -0.25, 0))
+		tup.append(highestMag(sec, 0, 0.25))
+		tup.append(highestMag(sec, 0.25, 0.5))
+		result.append(tup)
+	return result
 
 #fft1 and fft2 are arrays of tuples of highest mags defined in significiantMags
 def compare(fft1, fft2):
-   return isSubset(fft1, fft2) or isSubset(fft2, fft1)
+	return isSubset(fft1, fft2) or isSubset(fft2, fft1)
 
 #assumes list1 is the child/subset
 def isSubset(list1, list2):
-   for val1 in list1:
-      # print val1
-      found = False
-      for val2 in list2:
-         # print val2
-         if eachisclose(val1, val2):
-            found = True
-            break
-
-      if not found:
-         return False
-      # if val not in list2:
-      #    return False
-   return True
+	for val1 in list1:
+	# print val1
+	found = False
+	for val2 in list2:
+	# print val2
+	if eachisclose(val1, val2):
+		found = True
+		break
+	if not found:
+		return False
+	#if val not in list2:
+		#return False
+	return True
 
 # creates tolerance for acceptance as a derived file 
 def eachisclose(val1,val2):
-   for v1, v2 in zip(val1, val2):
-      ratio = 1
-      if v1 > v2:
-         ratio = v2/v1
-      else:
-         ratio = v1/v2
-      if ratio < 0.75:
-         return False
-   return True
+	for v1, v2 in zip(val1, val2):
+		ratio = 1
+		if v1 > v2:
+			ratio = v2/v1
+		else:
+			ratio = v1/v2
+	if ratio < 0.75:
+		return False
+	return True
 
 def highestMag(sec, low, high):	
-   score = 0
-   for mag, freq in sec:
-      # print mag, freq
-      if low <= freq < high:
-         if mag > score:
-            score = mag
-   # print score
-   return score
-   
+	score = 0
+	for mag, freq in sec:
+		if low <= freq < high:
+			if mag > score:
+				score = mag
+	return score
+
 if __name__ == '__main__':
-   verifyArgs()
-   matches = match(sys.argv[2], sys.argv[4])
-   if matches:
-      print "MATCH"
-   else:
-      print "NO MATCH"
-   exit(0)
+	verifyArgs()
+	matches = match(sys.argv[2], sys.argv[4])
+	if matches:
+		print "MATCH"
+	else:
+		print "NO MATCH"
+	exit(0)
