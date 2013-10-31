@@ -93,23 +93,23 @@ def open_wave_files(fpath1, fpath2):
 def convertToMono(audio):
     #store attributes of wav file
     (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
-    file.getparams()
+    audio.getparams()
 
     if nchannels != 1:
-
+        return audio
     else:
         return audio
 
-def fftconvert(file):
+def fftconvert(audio):
     # store attributes of wav file
     (nchannels, sampwidth, framerate, nframes, comptype, compname) \
-    = file.getparams()
+    = audio.getparams()
 
     # the result array of fft for each second
     ffta = []
     chunksize = framerate * nchannels
     for i in range(0, nframes/chunksize):
-        waveData = file.readframes(chunksize)
+        waveData = audio.readframes(chunksize)
         data = struct.unpack_from("%dh" % chunksize, waveData)
         mags = abs(np.fft.fft(data))**2
         freqs = np.fft.fftfreq(chunksize)
