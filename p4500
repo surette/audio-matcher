@@ -45,8 +45,8 @@ def match(fpath1 = None, fpath2 = None):
 	else:
 		return False
 
-	# make sure there is the correct number of arguments given
-	def verifyArgs():
+# make sure there is the correct number of arguments given
+def verifyArgs():
 	#verify that there are the correct number of arguements
 	if len(sys.argv) != 5:
 		sys.stderr.write("ERROR: Wrong number of arguments\n")
@@ -66,7 +66,8 @@ def verifyPathToFile(path):
 def isMp3(fpath):
 	return fpath.lower().endswith('.mp3')
 
-# converts the given wav file to an mp3 file and saves it to /tmp, it returns the wav file's path
+# converts the given mp3 file to a wav file and saves it to /tmp,
+# it returns the wav file's path
 def convertToWav(fpath):
 	name = fpath.rpartition('/')[2].split('.')[0]
 	newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
@@ -99,7 +100,8 @@ def convertToMono(audio):
 
 def fftconvert(file):
 	# store attributes of wav file
-	(nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
+	(nchannels, sampwidth, framerate, nframes, comptype, compname) \
+	= file.getparams()
 
 	# the result array of fft for each second
 	ffta = []
@@ -127,7 +129,10 @@ def significantMags(fft):
 
 #fft1 and fft2 are arrays of tuples of highest mags defined in significiantMags
 def compare(fft1, fft2):
-	return isSubset(fft1, fft2) or isSubset(fft2, fft1)
+	if len(fft1) < len(fft2):
+		return isSubset(fft1, fft2)
+	else:
+		return isSubset(fft2, fft1)
 
 #assumes list1 is the child/subset
 def isSubset(list1, list2):
@@ -145,7 +150,7 @@ def isSubset(list1, list2):
 		#return False
 	return True
 
-# creates tolerance for acceptance as a derived file 
+# creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
 	for v1, v2 in zip(val1, val2):
 		ratio = 1
