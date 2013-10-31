@@ -13,7 +13,7 @@ def match(fpath1 = None, fpath2 = None):
    verifyPathToFile(fpath2)
    file1 = None
    file2 = None
-   
+
    # check if any of the files is mp3 file. If it is, convert it to wav
    if(isMp3(fpath1)):
       fpath1 = convertToWav(fpath1)
@@ -22,16 +22,16 @@ def match(fpath1 = None, fpath2 = None):
 
    # makes sure the files are actually wave files
    (file1, file2) = open_wave_files(fpath1, fpath2)
-  
-   # converts the audio data to frequencies   
-   file1_freq = fftconvert(file1) 
+
+   # converts the audio data to frequencies
+   file1_freq = fftconvert(file1)
    file2_freq = fftconvert(file2)
 
    # close the files now
    file1.close()
    file2.close()
 
-   # get a list of tuple of significant magnitudes for second 
+   # get a list of tuple of significant magnitudes for second
    file1_mag = significantMags(file1_freq)
    file2_mag = significantMags(file2_freq)
 
@@ -62,7 +62,8 @@ def verifyPathToFile(path):
 def isMp3(fpath):
    return fpath.lower().endswith('.mp3')
 
-# converts the given wav file to an mp3 file and saves it to /tmp, it returns the wav file's path
+# converts the given wav file to an mp3 file and saves it to /tmp,
+# it returns the wav file's path
 def convertToWav(fpath):
    name = fpath.rpartition('/')[2].split('.')[0]
    newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
@@ -84,8 +85,9 @@ def open_wave_files(fpath1, fpath2):
 
 def fftconvert(file):
    # store attributes of wav file
-   (nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
-   
+   (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
+   file.getparams()
+
    # the result array of fft for each second
    ffta = []
    chunksize = framerate * nchannels
@@ -112,11 +114,12 @@ def significantMags(fft):
 
    return result
 
-#fft1 and fft2 are arrays of tuples of highest mags defined in significiantMags
+# fft1 and fft2 are arrays of tuples of highest mags defined in
+# significiantMags
 def compare(fft1, fft2):
    return isSubset(fft1, fft2) or isSubset(fft2, fft1)
 
-#assumes list1 is the child/subset
+# assumes list1 is the child/subset
 def isSubset(list1, list2):
    for val1 in list1:
       # print val1
@@ -133,7 +136,7 @@ def isSubset(list1, list2):
       #    return False
    return True
 
-# creates tolerance for acceptance as a derived file 
+# creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
    for v1, v2 in zip(val1, val2):
       ratio = 1
@@ -145,7 +148,7 @@ def eachisclose(val1,val2):
          return False
    return True
 
-def highestMag(sec, low, high):	
+def highestMag(sec, low, high):
    score = 0
    for mag, freq in sec:
       # print mag, freq
@@ -154,7 +157,7 @@ def highestMag(sec, low, high):
             score = mag
    # print score
    return score
-   
+
 if __name__ == '__main__':
    verifyArgs()
    matches = match(sys.argv[2], sys.argv[4])
