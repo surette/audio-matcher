@@ -90,10 +90,13 @@ def open_wave_files(fpath1, fpath2):
 # if the audio file is not a mono channel, change it to mono and return it, otherwise, return the same file
 def convertToMono(audio):
 	#store attributes of wav file	
-	(nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
+	(nchannels, sampwidth, framerate, nframes, comptype, compname) \
+	= audio.getparams()
 	
 	if nchannels != 1:
-		
+		name = audio.rpartition('/')[2].split('.')[0]
+		monoAudio = wave.open("/tmp/mono" + name + "wav")
+		monoAudio.setparams(1, samplewidth, framerate, nframes, comptype, compname)		
 
 	else:
 		return audio
