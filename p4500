@@ -49,7 +49,7 @@ def verifyArgs():
       exit(1)
    # Verify that all the flags are correct
    if sys.argv[1] != '-f' or sys.argv[3] != '-f':
-      sys.stderr.write("ERROR: Incorrect Flags")
+      sys.stderr.write("ERROR: Incorrect Flags\n")
       exit(3)
 
 # make sure the input is a real file
