@@ -13,7 +13,7 @@ def match(fpath1 = None, fpath2 = None):
    verifyPathToFile(fpath2)
    file1 = None
    file2 = None
-   
+
    # check if any of the files is mp3 file. If it is, convert it to wav
    if(isMp3(fpath1)):
       fpath1 = convertToWav(fpath1)
@@ -22,16 +22,16 @@ def match(fpath1 = None, fpath2 = None):
 
    # makes sure the files are actually wave files
    (file1, file2) = open_wave_files(fpath1, fpath2)
-  
-   # converts the audio data to frequencies   
-   file1_freq = fftconvert(file1) 
+
+   # converts the audio data to frequencies
+   file1_freq = fftconvert(file1)
    file2_freq = fftconvert(file2)
 
    # close the files now
    file1.close()
    file2.close()
 
-   # get a list of tuple of significant magnitudes for second 
+   # get a list of tuple of significant magnitudes for second
    file1_mag = significantMags(file1_freq)
    file2_mag = significantMags(file2_freq)
 
@@ -49,7 +49,7 @@ def verifyArgs():
       exit(1)
    # Verify that all the flags are correct
    if sys.argv[1] != '-f' or sys.argv[3] != '-f':
-      sys.stderr.write("ERROR: Incorrect Flags")
+      sys.stderr.write("ERROR: Incorrect Flags\n")
       exit(3)
 
 # make sure the input is a real file
@@ -62,7 +62,8 @@ def verifyPathToFile(path):
 def isMp3(fpath):
    return fpath.lower().endswith('.mp3')
 
-# converts the given mp3 file to a wav file and saves it to /tmp, it returns the wav file's path
+# converts the given wav file to an mp3 file and saves it to /tmp,
+# it returns the wav file's path
 def convertToWav(fpath):
    name = fpath.rpartition('/')[2].split('.')[0]
    newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
@@ -84,8 +85,9 @@ def open_wave_files(fpath1, fpath2):
 
 def fftconvert(file):
    # store attributes of wav file
-   (nchannels, sampwidth, framerate, nframes, comptype, compname) = file.getparams()
-   
+   (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
+   file.getparams()
+
    # the result array of fft for each second
    ffta = []
    chunksize = framerate * nchannels
@@ -103,20 +105,17 @@ def fftconvert(file):
 def significantMags(fft):
    result = []
    for sec in fft:
-      tup = []
-      tup.append(highestMag(sec, -0.5, -0.25))
-      tup.append(highestMag(sec, -0.25, 0))
-      tup.append(highestMag(sec, 0, 0.25))
-      tup.append(highestMag(sec, 0.25, 0.5))
+      tup = highestMag(sec)
       result.append(tup)
 
    return result
 
-#fft1 and fft2 are arrays of tuples of highest mags defined in significiantMags
+# fft1 and fft2 are arrays of tuples of highest mags defined in
+# significiantMags
 def compare(fft1, fft2):
    return isSubset(fft1, fft2) or isSubset(fft2, fft1)
 
-#assumes list1 is the child/subset
+# assumes list1 is the child/subset
 def isSubset(list1, list2):
    for val1 in list1:
       # print val1
@@ -133,7 +132,7 @@ def isSubset(list1, list2):
       #    return False
    return True
 
-# creates tolerance for acceptance as a derived file 
+# creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
    for v1, v2 in zip(val1, val2):
       ratio = 1
@@ -145,16 +144,40 @@ def eachisclose(val1,val2):
          return False
    return True
 
-def highestMag(sec, low, high):	
-   score = 0
-   for mag, freq in sec:
-      # print mag, freq
-      if low <= freq < high:
-         if mag > score:
-            score = mag
-   # print score
-   return score
-   
+# takes a chunk and returns a tuple of highest value within each of 4 buckets
+# Returns: [#,#,#,#]
+def highestMag(sec):
+    # bucket1: -0.5, -0.25
+    # bucket2: -0.25, 0
+    # bucket3: 0, 0.25
+    # bucket4: 0.25, 0.5
+    bound0 = -0.5
+    bound1 = -0.25
+    bound2 = 0
+    bound3 = 0.25
+    bound4 = 0.5
+
+    max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
+    -0.5, -0.5, -0.5, -0.5
+
+    # loop through the chunk, determining the the magnitude is a max in
+    # any of the buckets
+    for mag, freq in sec:
+        if bound0 <= freq < bound1:
+            if mag > max_bucket1:
+                max_bucket1 = mag
+        elif bound1 <= freq < bound2:
+            if mag > max_bucket2:
+                max_bucket2 = mag
+        elif bound2 <= freq < bound3:
+            if mag > max_bucket3:
+                max_bucket3 = mag
+        elif bound3 <= freq <= bound4:
+            if mag > max_bucket4:
+                max_bucket4 = mag
+
+    return max_bucket1, max_bucket2, max_bucket3, max_bucket4
+
 if __name__ == '__main__':
    verifyArgs()
    matches = match(sys.argv[2], sys.argv[4])
