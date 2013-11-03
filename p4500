@@ -165,17 +165,13 @@ def compare(fft1, fft2):
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
     for val1 in list1:
-        # print val1
 	found = False
-    for val2 in list2:
-	# print val2
-	if eachisclose(val1, val2):
-            found = True
-            break
+        for val2 in list2:
+	    if eachisclose(val1, val2):
+                found = True
+                break
 	if not found:
             return False
-	#if val not in list2:
-            #return False
     return True
 
 # creates tolerance for acceptance as a derived file
