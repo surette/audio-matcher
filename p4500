@@ -70,7 +70,7 @@ def verifyPathToFile(path):
 def isMp3(fpath):
    return fpath.lower().endswith('.mp3')
 
-# converts the given wav file to an mp3 file and saves it to /tmp,
+# converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
