@@ -7,7 +7,7 @@ import imp
 
 p4500 = imp.load_source("p4500", "../p4500")
 
-class TestAllCombinations(unittest.TestCase):
+class MatchTests(unittest.TestCase):
 
     # 5 seconds subset
     def test_trouble_x1_match(self):
@@ -86,4 +86,5 @@ class TestAllCombinations(unittest.TestCase):
         self.assertTrue(p4500.match('../A4/x10.wav', '../A4/x11.wav'))
 
 if __name__ == '__main__':
-    unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(MatchTests)
+    unittest.TextTestRunner(verbosity=2).run(suite)
