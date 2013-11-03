@@ -51,27 +51,26 @@ def match(fpath1 = None, fpath2 = None):
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
-
-    #verify that there are the correct number of arguements
-    if len(sys.argv) != 5:
-        sys.stderr.write("ERROR: Wrong number of arguments\n")
-        exit(1)
-    # Verify that all the flags are correct
-    if sys.argv[1] != '-f' or sys.argv[3] != '-f':
-        sys.stderr.write("ERROR: Incorrect Flags\n")
-	exit(3)
+   #verify that there are the correct number of arguements
+   if len(sys.argv) != 5:
+      sys.stderr.write("ERROR: Wrong number of arguments\n")
+      exit(1)
+   # Verify that all the flags are correct
+   if sys.argv[1] != '-f' or sys.argv[3] != '-f':
+      sys.stderr.write("ERROR: Incorrect Flags\n")
+      exit(3)
 
 # make sure the input is a real file
 def verifyPathToFile(path):
-    if not os.path.isfile(path):
-        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-        exit(2)
+   if not os.path.isfile(path):
+      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
+      exit(2)
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
-    return fpath.lower().endswith('.mp3')
+   return fpath.lower().endswith('.mp3')
 
-# converts the given mp3 file to a wav file and saves it to /tmp,
+# converts the given wav file to an mp3 file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
@@ -145,22 +144,17 @@ def fftconvert(audio):
     return ffta
 
 def significantMags(fft):
-    result = []
-    for sec in fft:
-        tup = []
-        tup.append(highestMag(sec, -0.5, -0.25))
-        tup.append(highestMag(sec, -0.25, 0))
-        tup.append(highestMag(sec, 0, 0.25))
-        tup.append(highestMag(sec, 0.25, 0.5))
-        result.append(tup)
-    return result
+   result = []
+   for sec in fft:
+      tup = highestMag(sec)
+      result.append(tup)
 
-# fft1 and fft2 are arrays of tuples of highest mags defined in significiantMags
+   return result
+
+# fft1 and fft2 are arrays of tuples of highest mags defined in
+# significiantMags
 def compare(fft1, fft2):
-    if len(fft1) < len(fft2):
-        return isSubset(fft1, fft2)
-    else:
-        return isSubset(fft2, fft1)
+   return isSubset(fft1, fft2) or isSubset(fft2, fft1)
 
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
@@ -176,29 +170,55 @@ def isSubset(list1, list2):
 
 # creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
-    for v1, v2 in zip(val1, val2):
-        ratio = 1
-        if v1 > v2:
-            ratio = v2/v1
-        else:
-            ratio = v1/v2
-    if ratio < 0.75:
-        return False
-    return True
+   for v1, v2 in zip(val1, val2):
+      ratio = 1
+      if v1 > v2:
+         ratio = v2/v1
+      else:
+         ratio = v1/v2
+      if ratio < 0.75:
+         return False
+   return True
 
-def highestMag(sec, low, high):
-    score = 0
+# takes a chunk and returns a tuple of highest value within each of 4 buckets
+# Returns: [#,#,#,#]
+def highestMag(sec):
+    # bucket1: -0.5, -0.25
+    # bucket2: -0.25, 0
+    # bucket3: 0, 0.25
+    # bucket4: 0.25, 0.5
+    bound0 = -0.5
+    bound1 = -0.25
+    bound2 = 0
+    bound3 = 0.25
+    bound4 = 0.5
+
+    max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
+    -0.5, -0.5, -0.5, -0.5
+
+    # loop through the chunk, determining the the magnitude is a max in
+    # any of the buckets
     for mag, freq in sec:
-        if low <= freq < high:
-            if mag > score:
-                score = mag
-    return score
+        if bound0 <= freq < bound1:
+            if mag > max_bucket1:
+                max_bucket1 = mag
+        elif bound1 <= freq < bound2:
+            if mag > max_bucket2:
+                max_bucket2 = mag
+        elif bound2 <= freq < bound3:
+            if mag > max_bucket3:
+                max_bucket3 = mag
+        elif bound3 <= freq <= bound4:
+            if mag > max_bucket4:
+                max_bucket4 = mag
+
+    return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
 if __name__ == '__main__':
-    verifyArgs()
-    matches = match(sys.argv[2], sys.argv[4])
-    if matches:
-        print "MATCH"
-    else:
-        print "NO MATCH"
-    exit(0)
+   verifyArgs()
+   matches = match(sys.argv[2], sys.argv[4])
+   if matches:
+      print "MATCH"
+   else:
+      print "NO MATCH"
+   exit(0)
