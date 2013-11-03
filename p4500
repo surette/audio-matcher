@@ -116,13 +116,11 @@ def convertToMono(audio, name):
     else:
         return audio
 
-# gets the format of the file based on number of channels and sample width
-# 1 channel,   8 bits = 1b
-# 2 channels,  8 bits = 1h
-# 1 channel,  16 bits = 2b
-# 2 channels, 16 bits = 2h
-def getFormat(nchannels, sampwidth):
-    fmt = str(nchannels)
+# gets the format of the file based on size of sample and sample width
+#  8 bits: size + "b"
+# 16 bits: size + "h"
+def getFormat(sampsize, sampwidth):
+    fmt = str(sampsize)
     if sampwidth == 1:
         fmt = fmt + 'b'
     else:
@@ -136,10 +134,9 @@ def fftconvert(audio):
 
     # the result array of fft for each second
     ffta = []
-    chuncksize = framerate * nchannels
-    for i in range(0, nframes/chuncksize):
-        waveData = audio.readframes(chuncksize)
-        unPack = wave.struct.unpack_from("%dh"% chuncksize, waveData)
+    for i in range(0, nframes/framerate):
+        waveData = audio.readframes(framerate)
+        unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
         mags = abs(np.fft.fft(unPack))**2
         freqs = np.fft.fftfreq(framerate)
         ffta.append(zip(mags, freqs))
