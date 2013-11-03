@@ -14,18 +14,22 @@ def match(fpath1 = None, fpath2 = None):
     file1 = None
     file2 = None
 
+    # extrach the name of the file
+    name1 = fpath1.rpartition('/')[2].split('.')[0]
+    name2 = fpath2.rpartition('/')[2].split('.')[0]
+
     # check if any of the files is mp3 file. If it is, convert it to wav
     if(isMp3(fpath1)):
-       	fpath1 = convertToWav(fpath1)
+       	fpath1 = convertToWav(fpath1, name1)
     if(isMp3(fpath2)):
-       	fpath2 = convertToWav(fpath2)
+       	fpath2 = convertToWav(fpath2, name2)
 
     # makes sure the files are actually wave files
     (file1, file2) = open_wave_files(fpath1, fpath2)
 
     # converts the audio data into mono
-    file1 = convertToMono(file1)
-    file2 = convertToMono(file2)
+    file1 = convertToMono(file1, name1)
+    file2 = convertToMono(file2, name2)
 
     # converts the audio data to frequencies
     file1_freq = fftconvert(file1)
@@ -69,8 +73,7 @@ def isMp3(fpath):
 
 # converts the given mp3 file to a wav file and saves it to /tmp,
 # it returns the wav file's path
-def convertToWav(fpath):
-    name = fpath.rpartition('/')[2].split('.')[0]
+def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
     cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
     subprocess.call(cmd, shell=True)
@@ -90,45 +93,41 @@ def open_wave_files(fpath1, fpath2):
 
 # if the audio file is not a mono channel, change it to mono and return it,
 # otherwise, return the same file
-def convertToMono(audio):
+def convertToMono(audio, name):
     #store attributes of wav file
     (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
     audio.getparams()
 
     if nchannels != 1:
-	    name = audio.rpartition('/')[2].split('.')[0]
-        newAudio = wave.open("/tmp/mono" + name + ".wav")
-	    newAudio.setparams(1,  sampwidth, framerate, nframes, comptype, compname)
-	
-	    for i in range(0, nframes):
+        newName = "/tmp/mono-" + name + ".wav"
+        newAudio = wave.open(newName, 'w')
+	newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
+
+	for i in range(0, nframes):
             waveData = audio.readframes(1)
             unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
             average = (unPack[0] + unPack[1])/2
             newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
 
         audio.close()
+        newAudio.close()
+        newAudio = wave.open(newName, 'r')
         return newAudio
     else:
         return audio
 
+# gets the format of the file based on number of channels and sample width
+# 1 channel,   8 bits = 1b
+# 2 channels,  8 bits = 1h
+# 1 channel,  16 bits = 2b
+# 2 channels, 16 bits = 2h
 def getFormat(nchannels, sampwidth):
-    fmt = '' + nchannels
+    fmt = str(nchannels)
     if sampwidth == 1:
         fmt = fmt + 'b'
-    else
+    else:
         fmt = fmt + 'h'
     return fmt
-
-
-FORMAT = {'11':'1b','12':'1h','21':'2b','22':'2h'}
-
-def format_in(self):
-    self.fmt = ''.join((str(self.w.getnchannels()), str(self.w.getsampwidth())))
-    return FORMAT.get(self.fmt)
-
-def format_out(self):
-    self.fmt = ''.join(('1',str(self.w.getsampwidth())))
-    return FORMAT.get(self.fmt)
 
 def fftconvert(audio):
     # store attributes of wav file
@@ -137,12 +136,12 @@ def fftconvert(audio):
 
     # the result array of fft for each second
     ffta = []
-    chunksize = framerate * nchannels
-    for i in range(0, nframes/chunksize):
-        waveData = audio.readframes(chunksize)
-        data = struct.unpack_from("%dh" % chunksize, waveData)
-        mags = abs(np.fft.fft(data))**2
-        freqs = np.fft.fftfreq(chunksize)
+    chuncksize = framerate * nchannels
+    for i in range(0, nframes/chuncksize):
+        waveData = audio.readframes(chuncksize)
+        unPack = wave.struct.unpack_from("%dh"% chuncksize, waveData)
+        mags = abs(np.fft.fft(unPack))**2
+        freqs = np.fft.fftfreq(framerate)
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
