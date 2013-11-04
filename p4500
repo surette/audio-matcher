@@ -70,7 +70,7 @@ def verifyPathToFile(path):
 def isMp3(fpath):
    return fpath.lower().endswith('.mp3')
 
-# converts the given wav file to an mp3 file and saves it to /tmp,
+# converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
@@ -154,7 +154,10 @@ def significantMags(fft):
 # fft1 and fft2 are arrays of tuples of highest mags defined in
 # significiantMags
 def compare(fft1, fft2):
-   return isSubset(fft1, fft2) or isSubset(fft2, fft1)
+    if len(fft1) < len(fft2):
+        return isSubset(fft1, fft2)
+    else:
+        return isSubset(fft2, fft1)
 
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
