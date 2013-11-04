@@ -154,7 +154,10 @@ def significantMags(fft):
 # fft1 and fft2 are arrays of tuples of highest mags defined in
 # significiantMags
 def compare(fft1, fft2):
-   return isSubset(fft1, fft2) or isSubset(fft2, fft1)
+    if len(fft1) < len(fft2):
+        return isSubset(fft1, fft2)
+    else:
+        return isSubset(fft2, fft1)
 
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
