@@ -164,12 +164,25 @@ def isSubset(list1, list2):
     for val1 in list1:
 	found = False
         for val2 in list2:
-	    if eachisclose(val1, val2):
+	    if distance(val1, val2) < 10000000000:
+                print("PASS")
                 found = True
                 break
 	if not found:
             return False
     return True
+
+# distance function that uses euclidean formula to get the
+# distance between the two given tuples
+# - assumes tuple1 and tuple2 are of the same size
+def distance(tuple1, tuple2):
+    underroot = 0
+    for i in range(0, len(tuple1)): 
+        underroot = underroot + math.pow(tuple1[i] - tuple2[i], 2)
+    
+    dist = math.sqrt(underroot)
+    print(dist)
+    return dist
 
 # creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
