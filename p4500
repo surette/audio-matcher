@@ -77,7 +77,7 @@ def isMp3(fpath):
 # converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
-    newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+    newName = "/tmp/" + name + '.wav'
     cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
     subprocess.call(cmd, shell=True)
     return newName
@@ -135,13 +135,14 @@ def fftconvert(audio):
     (nchannels, sampwidth, framerate, nframes, comptype, compname) \
     = audio.getparams()
 
-    # the result array of fft for each second
+    # the result array of fft for each tenth of a second
     ffta = []
-    for i in range(0, nframes/framerate):
-        waveData = audio.readframes(framerate)
-        unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
+    chunksize = framerate/10
+    for i in range(0, nframes/chunksize):
+        waveData = audio.readframes(chunksize)
+        unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), waveData)
         mags = abs(np.fft.fft(unPack))
-        freqs = np.fft.fftfreq(framerate)
+        freqs = np.fft.fftfreq(chunksize)
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
@@ -163,7 +164,7 @@ def significantMags(fft):
 # fft1 and fft2 are arrays of tuples of highest mags defined in
 # significiantMags
 def compare(fft1, fft2):
-    if len(fft1) < len(fft2):
+    if len(fft1) <= len(fft2):
         return isSubset(fft1, fft2)
     else:
         return isSubset(fft2, fft1)
@@ -173,7 +174,7 @@ def isSubset(list1, list2):
     for val1 in list1:
 	found = False
         for val2 in list2:
-	    if distance(val1, val2) < tolarance:
+	    if eachisclose(val1, val2): #< tolarance:
                 print("PASS")
                 found = True
                 break
