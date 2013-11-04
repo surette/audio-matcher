@@ -7,6 +7,10 @@ import wave
 import struct
 import subprocess
 
+
+# global variables
+tolarance = 1e5
+
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
     verifyPathToFile(fpath1)
@@ -136,12 +140,17 @@ def fftconvert(audio):
     for i in range(0, nframes/framerate):
         waveData = audio.readframes(framerate)
         unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
-        mags = abs(np.fft.fft(unPack))**2
+        mags = abs(np.fft.fft(unPack))
         freqs = np.fft.fftfreq(framerate)
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
     return ffta
+
+def printHertz(freqs, framerate):
+    print "a second"
+    for freq in freqs:
+        print(freq*framerate) 
 
 def significantMags(fft):
    result = []
@@ -164,7 +173,7 @@ def isSubset(list1, list2):
     for val1 in list1:
 	found = False
         for val2 in list2:
-	    if distance(val1, val2) < 10000000000:
+	    if distance(val1, val2) < tolarance:
                 print("PASS")
                 found = True
                 break
@@ -184,7 +193,7 @@ def distance(tuple1, tuple2):
     print(dist)
     return dist
 
-# creates tolerance for acceptance as a derived file
+# creates tolerance for acceptance as a derived file using a ratio
 def eachisclose(val1,val2):
    for v1, v2 in zip(val1, val2):
       ratio = 1
@@ -210,7 +219,7 @@ def highestMag(sec):
     bound4 = 0.5
 
     max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
-    -0.5, -0.5, -0.5, -0.5
+    0, 0, 0, 0
 
     # loop through the chunk, determining the the magnitude is a max in
     # any of the buckets
