@@ -6,7 +6,7 @@ import numpy as np
 import wave
 import struct
 import subprocess
-from mutagen import MP3, HeaderNotFoundError
+from mutagen.mp3 import MP3, HeaderNotFoundError
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -29,8 +29,8 @@ def match(fpath1 = None, fpath2 = None):
     (file1, file2) = open_wave_files(fpath1, fpath2)
 
     # converts the audio data into mono
-    # file1 = convertToMono(file1, name1)
-    # file2 = convertToMono(file2, name2)
+    file1 = convertToMono(file1, name1)
+    file2 = convertToMono(file2, name2)
 
     # converts the audio data to frequencies
     file1_freq = fftconvert(file1)
@@ -80,7 +80,8 @@ def isMp3(fpath):
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
-    cmd = "/course/cs4500f13/bin/lame --decode --silent "+ fpath + " " + newName
+    cmd = "/course/cs4500f13/bin/lame --decode --silent " \
+    + fpath + " " + newName
     subprocess.call(cmd, shell=True)
     return newName
 
@@ -106,13 +107,16 @@ def convertToMono(audio, name):
     if nchannels != 1:
         newName = "/tmp/mono-" + name + ".wav"
         newAudio = wave.open(newName, 'w')
-        newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
+        newAudio.setparams((1,  sampwidth, framerate, nframes, \
+        comptype, compname))
 
         for i in range(0, nframes):
             waveData = audio.readframes(1)
-            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
+            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
+            waveData)
             average = (unPack[0] + unPack[1])/2
-            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
+            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), \
+            average))
 
         audio.close()
         newAudio.close()
@@ -141,7 +145,8 @@ def fftconvert(audio):
     ffta = []
     for i in range(0, nframes/framerate):
         waveData = audio.readframes(framerate)
-        unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
+        unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), \
+        waveData)
         mags = abs(np.fft.fft(unPack))**2
         freqs = abs((np.fft.fftfreq(framerate))*framerate)
         ffta.append(zip(mags, freqs))
@@ -149,16 +154,18 @@ def fftconvert(audio):
     # return the array of frequencies
     return ffta
 
+# return an array of tuples consisting of the significant values at each
+# second in the file
 def significantMags(fft):
-   result = []
-   for sec in fft:
-      tup = highestMag(sec)
-      result.append(tup)
+    result = []
+    for sec in fft:
+        tup = highestMag(sec)
+        result.append(tup)
 
-   return result
+    return result
 
 # fft1 and fft2 are arrays of tuples of highest mags defined in
-# significiantMags
+# significantMags
 def compare(fft1, fft2):
     if len(fft1) < len(fft2):
         return isSubset(fft1, fft2)
@@ -173,8 +180,8 @@ def isSubset(list1, list2):
             if eachisclose(val1, val2):
                 found = True
                 break
-        #if we loop through the entire list2 file, and don't find the value
-        #the tracks are not matches.
+        # if we loop through the entire list2 file, and don't find the value
+        # the tracks are not matches.
         if not found:
             return False
     return True
