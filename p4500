@@ -63,9 +63,9 @@ def verifyArgs():
 
 # make sure the input is a real file
 def verifyPathToFile(path):
-   if not os.path.isfile(path):
-      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-      exit(2)
+    if not os.path.isfile(path):
+        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
+        exit(2)
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
@@ -82,6 +82,7 @@ def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
     cmd = "/course/cs4500f13/bin/lame --decode --silent " \
     + fpath + " " + newName
+
     subprocess.call(cmd, shell=True)
     return newName
 
@@ -114,6 +115,7 @@ def convertToMono(audio, name):
             waveData = audio.readframes(1)
             unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
             waveData)
+
             average = (unPack[0] + unPack[1])/2
             newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), \
             average))
@@ -147,6 +149,7 @@ def fftconvert(audio):
         waveData = audio.readframes(framerate)
         unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), \
         waveData)
+
         mags = abs(np.fft.fft(unPack))**2
         freqs = abs((np.fft.fftfreq(framerate))*framerate)
         ffta.append(zip(mags, freqs))
@@ -180,6 +183,7 @@ def isSubset(list1, list2):
             if eachisclose(val1, val2):
                 found = True
                 break
+
         # if we loop through the entire list2 file, and don't find the value
         # the tracks are not matches.
         if not found:
@@ -194,17 +198,18 @@ def eachisclose(val1,val2):
             ratio = v2/v1
         else:
             ratio = v1/v2
-    if ratio < 0.75:
-        return False
+
+        if ratio < 0.75:
+            return False
     return True
 
 # takes a chunk and returns a tuple of highest value within each of 4 buckets
 # Returns: [#,#,#,#]
 def highestMag(sec):
-    # bucket1: -0.5, -0.25
-    # bucket2: -0.25, 0
-    # bucket3: 0, 0.25
-    # bucket4: 0.25, 0.5
+    # bucket1: 0, 4000
+    # bucket2: 4000, 8000
+    # bucket3: 8000, 12000
+    # bucket4: 12000, 15000
     bound0 = 0
     bound1 = 4000
     bound2 = 8000
