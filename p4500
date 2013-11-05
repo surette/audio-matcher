@@ -69,18 +69,18 @@ def verifyPathToFile(path):
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
-   try:
-      audio = MP3(fpath)
-      return not audio.info.sketchy
-   except HeaderNotFoundError:
-      sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
-      exit(5)
+    try:
+        audio = MP3(fpath)
+        return not audio.info.sketchy
+    except HeaderNotFoundError:
+        sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
+        exit(5)
 
 # converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
-    cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
+    cmd = "/course/cs4500f13/bin/lame --decode --silent "+ fpath + " " + newName
     subprocess.call(cmd, shell=True)
     return newName
 
@@ -88,7 +88,7 @@ def open_wave_files(fpath1, fpath2):
     try:
         file1 = wave.open(fpath1, 'r')
         file2 = wave.open(fpath2, 'r')
-    return file1, file2
+        return file1, file2
     except wave.Error:
         sys.stderr.write("ERROR: File is not using the correct .wav format\n")
         exit(3)
@@ -108,11 +108,11 @@ def convertToMono(audio, name):
         newAudio = wave.open(newName, 'w')
         newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
 
-    for i in range(0, nframes):
-        waveData = audio.readframes(1)
-        unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
-        average = (unPack[0] + unPack[1])/2
-        newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
+        for i in range(0, nframes):
+            waveData = audio.readframes(1)
+            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
+            average = (unPack[0] + unPack[1])/2
+            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
 
         audio.close()
         newAudio.close()
@@ -143,7 +143,7 @@ def fftconvert(audio):
         waveData = audio.readframes(framerate)
         unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
         mags = abs(np.fft.fft(unPack))**2
-        freqs = (np.fft.fftfreq(framerate))*framerate
+        freqs = abs((np.fft.fftfreq(framerate))*framerate)
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
@@ -168,26 +168,28 @@ def compare(fft1, fft2):
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
     for val1 in list1:
-    found = False
+        found = False
         for val2 in list2:
-        if eachisclose(val1, val2):
+            if eachisclose(val1, val2):
                 found = True
                 break
-    if not found:
+        #if we loop through the entire list2 file, and don't find the value
+        #the tracks are not matches.
+        if not found:
             return False
     return True
 
 # creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
-   for v1, v2 in zip(val1, val2):
-      ratio = 1
-      if v1 > v2:
-         ratio = v2/v1
-      else:
-         ratio = v1/v2
-      if ratio < 0.75:
-         return False
-   return True
+    for v1, v2 in zip(val1, val2):
+        ratio = 1
+        if v1 > v2:
+            ratio = v2/v1
+        else:
+            ratio = v1/v2
+    if ratio < 0.75:
+        return False
+    return True
 
 # takes a chunk and returns a tuple of highest value within each of 4 buckets
 # Returns: [#,#,#,#]
@@ -203,9 +205,9 @@ def highestMag(sec):
     bound4 = 15000
 
     max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
-    -0.5, -0.5, -0.5, -0.5
+    0, 0, 0, 0
     max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
-    -0.5, -0.5, -0.5, -0.5
+    0, 0, 0, 0
 
     # loop through the chunk, determining the the magnitude is a max in
     # any of the buckets
@@ -230,10 +232,10 @@ def highestMag(sec):
     return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
 if __name__ == '__main__':
-   verifyArgs()
-   matches = match(sys.argv[2], sys.argv[4])
-   if matches:
-      print "MATCH"
-   else:
-      print "NO MATCH"
-   exit(0)
+    verifyArgs()
+    matches = match(sys.argv[2], sys.argv[4])
+    if matches:
+        print "MATCH"
+    else:
+        print "NO MATCH"
+    exit(0)
