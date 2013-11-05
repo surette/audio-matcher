@@ -8,6 +8,10 @@ import struct
 import subprocess
 from mutagen.mp3 import MP3, HeaderNotFoundError
 
+
+# global variables
+tolarance = 1
+
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
     verifyPathToFile(fpath1)
@@ -147,19 +151,21 @@ def fftconvert(audio):
     (nchannels, sampwidth, framerate, nframes, comptype, compname) \
     = audio.getparams()
 
-    # the result array of fft for each second
+    # the result array of fft for each tenth of a second
     ffta = []
+    chunksize = framerate/10
 
     # LOOP INVARIANT:
     # 0 <= i <= nframes/framerate
     # ffta is the combination of the magnitudes and frequencies of each chunk
-    for i in range(0, nframes/framerate):
-        waveData = audio.readframes(framerate)
-        unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), \
+    for i in range(0, nframes/chunksize):
+        waveData = audio.readframes(chunksize)
+        unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
         waveData)
 
-        mags = abs(np.fft.fft(unPack))**2
-        freqs = abs((np.fft.fftfreq(framerate))*framerate)
+        mags = abs(np.fft.fft(unPack))
+        freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
+        # freqs = abs((np.fft.fftfreq(framerate))*framerate)
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
@@ -180,7 +186,7 @@ def significantMags(fft):
 # fft1 and fft2 are arrays of tuples of highest mags defined in
 # significantMags
 def compare(fft1, fft2):
-    if len(fft1) < len(fft2):
+    if len(fft1) <= len(fft2):
         return isSubset(fft1, fft2)
     else:
         return isSubset(fft2, fft1)
@@ -190,7 +196,8 @@ def isSubset(list1, list2):
     for val1 in list1:
         found = False
         for val2 in list2:
-            if eachisclose(val1, val2):
+            if distance(val1, val2) <= tolarance:
+                print("PASS")
                 found = True
                 break
 
@@ -200,8 +207,20 @@ def isSubset(list1, list2):
             return False
     return True
 
+# distance function that uses euclidean formula to get the
+# distance between the two given tuples
+# - assumes tuple1 and tuple2 are of the same size
+def distance(tuple1, tuple2):
+    underroot = 0
+    for i in range(0, len(tuple1)): 
+        underroot = underroot + math.pow(tuple1[i] - tuple2[i], 2)
+    
+    dist = math.sqrt(underroot)
+    print(dist)
+    return dist
+
+# creates tolerance for acceptance as a derived file using a ratio
 # DEPRECATED
-# creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
     for v1, v2 in zip(val1, val2):
         ratio = 1
@@ -229,6 +248,7 @@ def highestMag(sec):
 
     max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
     0, 0, 0, 0
+    
     max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
     0, 0, 0, 0
 
