@@ -14,22 +14,22 @@ def match(fpath1 = None, fpath2 = None):
     file1 = None
     file2 = None
 
-    # extrach the name of the file
+    # extract the name of the file
     name1 = fpath1.rpartition('/')[2].split('.')[0]
     name2 = fpath2.rpartition('/')[2].split('.')[0]
 
     # check if any of the files is mp3 file. If it is, convert it to wav
     if(isMp3(fpath1)):
-       	fpath1 = convertToWav(fpath1, name1)
+        fpath1 = convertToWav(fpath1, name1)
     if(isMp3(fpath2)):
-       	fpath2 = convertToWav(fpath2, name2)
+        fpath2 = convertToWav(fpath2, name2)
 
     # makes sure the files are actually wave files
     (file1, file2) = open_wave_files(fpath1, fpath2)
 
     # converts the audio data into mono
-    file1 = convertToMono(file1, name1)
-    file2 = convertToMono(file2, name2)
+    # file1 = convertToMono(file1, name1)
+    # file2 = convertToMono(file2, name2)
 
     # converts the audio data to frequencies
     file1_freq = fftconvert(file1)
@@ -45,9 +45,9 @@ def match(fpath1 = None, fpath2 = None):
 
     # compare the two arrays of frequencies
     if compare(file1_mag, file2_mag):
-       	return True
+        return True
     else:
-       	return False
+        return False
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
@@ -74,7 +74,7 @@ def isMp3(fpath):
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
-    cmd = "/course/cs4500f13/bin/lame --decode --silent "+ fpath + " " + newName
+    cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
     subprocess.call(cmd, shell=True)
     return newName
 
@@ -82,7 +82,7 @@ def open_wave_files(fpath1, fpath2):
     try:
         file1 = wave.open(fpath1, 'r')
         file2 = wave.open(fpath2, 'r')
-	return file1, file2
+    return file1, file2
     except wave.Error:
         sys.stderr.write("ERROR: File is not using the correct .wav format\n")
         exit(3)
@@ -100,13 +100,13 @@ def convertToMono(audio, name):
     if nchannels != 1:
         newName = "/tmp/mono-" + name + ".wav"
         newAudio = wave.open(newName, 'w')
-	newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
+        newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
 
-	for i in range(0, nframes):
-            waveData = audio.readframes(1)
-            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
-            average = (unPack[0] + unPack[1])/2
-            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
+    for i in range(0, nframes):
+        waveData = audio.readframes(1)
+        unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
+        average = (unPack[0] + unPack[1])/2
+        newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
 
         audio.close()
         newAudio.close()
@@ -137,7 +137,7 @@ def fftconvert(audio):
         waveData = audio.readframes(framerate)
         unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
         mags = abs(np.fft.fft(unPack))**2
-        freqs = abs((np.fft.fftfreq(framerate)))*framerate
+        freqs = (np.fft.fftfreq(framerate))*framerate
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
@@ -162,12 +162,12 @@ def compare(fft1, fft2):
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
     for val1 in list1:
-	found = False
+    found = False
         for val2 in list2:
-	    if eachisclose(val1, val2):
+        if eachisclose(val1, val2):
                 found = True
                 break
-	if not found:
+    if not found:
             return False
     return True
 
