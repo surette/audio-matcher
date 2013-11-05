@@ -6,7 +6,7 @@ import numpy as np
 import wave
 import struct
 import subprocess
-from mutagen import MP3, HeaderNotFoundError
+from mutagen.mp3 import MP3, HeaderNotFoundError
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -29,8 +29,8 @@ def match(fpath1 = None, fpath2 = None):
     (file1, file2) = open_wave_files(fpath1, fpath2)
 
     # converts the audio data into mono
-    # file1 = convertToMono(file1, name1)
-    # file2 = convertToMono(file2, name2)
+    file1 = convertToMono(file1, name1)
+    file2 = convertToMono(file2, name2)
 
     # converts the audio data to frequencies
     file1_freq = fftconvert(file1)
@@ -63,9 +63,9 @@ def verifyArgs():
 
 # make sure the input is a real file
 def verifyPathToFile(path):
-   if not os.path.isfile(path):
-      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-      exit(2)
+    if not os.path.isfile(path):
+        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
+        exit(2)
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
@@ -79,7 +79,7 @@ def isMp3(fpath):
 # converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
-    newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+    newName = "/tmp/" + name + '.wav'
     cmd = "/course/cs4500f13/bin/lame --decode --silent "+ fpath + " " + newName
     subprocess.call(cmd, shell=True)
     return newName
@@ -142,7 +142,7 @@ def fftconvert(audio):
     for i in range(0, nframes/framerate):
         waveData = audio.readframes(framerate)
         unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), waveData)
-        mags = abs(np.fft.fft(unPack))**2
+        mags = abs(np.fft.fft(unPack))
         freqs = abs((np.fft.fftfreq(framerate))*framerate)
         ffta.append(zip(mags, freqs))
 
@@ -150,12 +150,12 @@ def fftconvert(audio):
     return ffta
 
 def significantMags(fft):
-   result = []
-   for sec in fft:
-      tup = highestMag(sec)
-      result.append(tup)
+    result = []
+    for sec in fft:
+        tup = highestMag(sec)
+        result.append(tup)
 
-   return result
+    return result
 
 # fft1 and fft2 are arrays of tuples of highest mags defined in
 # significiantMags
@@ -173,7 +173,7 @@ def isSubset(list1, list2):
             if eachisclose(val1, val2):
                 found = True
                 break
-        #if we loop through the entire list2 file, and don't find the value
+        #if we loop through the entire list2 file, and don't find val1
         #the tracks are not matches.
         if not found:
             return False
@@ -187,8 +187,9 @@ def eachisclose(val1,val2):
             ratio = v2/v1
         else:
             ratio = v1/v2
-    if ratio < 0.75:
-        return False
+
+        if ratio < 0.75:
+            return False
     return True
 
 # takes a chunk and returns a tuple of highest value within each of 4 buckets
