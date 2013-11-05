@@ -6,6 +6,7 @@ import numpy as np
 import wave
 import struct
 import subprocess
+from mutagen.mp3 import MP3, HeaderNotFoundError
 
 
 # global variables
@@ -18,15 +19,15 @@ def match(fpath1 = None, fpath2 = None):
     file1 = None
     file2 = None
 
-    # extrach the name of the file
+    # extract the name of the file
     name1 = fpath1.rpartition('/')[2].split('.')[0]
     name2 = fpath2.rpartition('/')[2].split('.')[0]
 
     # check if any of the files is mp3 file. If it is, convert it to wav
     if(isMp3(fpath1)):
-       	fpath1 = convertToWav(fpath1, name1)
+        fpath1 = convertToWav(fpath1, name1)
     if(isMp3(fpath2)):
-       	fpath2 = convertToWav(fpath2, name2)
+        fpath2 = convertToWav(fpath2, name2)
 
     # makes sure the files are actually wave files
     (file1, file2) = open_wave_files(fpath1, fpath2)
@@ -49,9 +50,9 @@ def match(fpath1 = None, fpath2 = None):
 
     # compare the two arrays of frequencies
     if compare(file1_mag, file2_mag):
-       	return True
+        return True
     else:
-       	return False
+        return False
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
@@ -66,19 +67,24 @@ def verifyArgs():
 
 # make sure the input is a real file
 def verifyPathToFile(path):
-   if not os.path.isfile(path):
-      sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-      exit(2)
+    if not os.path.isfile(path):
+        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
+        exit(2)
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
-   return fpath.lower().endswith('.mp3')
+    try:
+        audio = MP3(fpath)
+        return not audio.info.sketchy
+    except HeaderNotFoundError:
+        sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
+        exit(5)
 
 # converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
     newName = "/tmp/" + name + '.wav'
-    cmd = "/course/cs4500f13/bin/lame --decode "+ fpath + " " + newName
+    cmd = "/course/cs4500f13/bin/lame --decode --silent "+ fpath + " " + newName
     subprocess.call(cmd, shell=True)
     return newName
 
@@ -86,7 +92,7 @@ def open_wave_files(fpath1, fpath2):
     try:
         file1 = wave.open(fpath1, 'r')
         file2 = wave.open(fpath2, 'r')
-	return file1, file2
+        return file1, file2
     except wave.Error:
         sys.stderr.write("ERROR: File is not using the correct .wav format\n")
         exit(3)
@@ -104,9 +110,9 @@ def convertToMono(audio, name):
     if nchannels != 1:
         newName = "/tmp/mono-" + name + ".wav"
         newAudio = wave.open(newName, 'w')
-	newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
+        newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
 
-	for i in range(0, nframes):
+        for i in range(0, nframes):
             waveData = audio.readframes(1)
             unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
             average = (unPack[0] + unPack[1])/2
@@ -137,12 +143,13 @@ def fftconvert(audio):
 
     # the result array of fft for each tenth of a second
     ffta = []
-    chunksize = framerate/10
+    chunksize = framerate
     for i in range(0, nframes/chunksize):
         waveData = audio.readframes(chunksize)
         unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), waveData)
         mags = abs(np.fft.fft(unPack))
-        freqs = np.fft.fftfreq(chunksize)
+        freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
+        # freqs = abs((np.fft.fftfreq(framerate))*framerate)
         ffta.append(zip(mags, freqs))
 
     # return the array of frequencies
@@ -154,12 +161,12 @@ def printHertz(freqs, framerate):
         print(freq*framerate) 
 
 def significantMags(fft):
-   result = []
-   for sec in fft:
-      tup = highestMag(sec)
-      result.append(tup)
+    result = []
+    for sec in fft:
+        tup = highestMag(sec)
+        result.append(tup)
 
-   return result
+    return result
 
 # fft1 and fft2 are arrays of tuples of highest mags defined in
 # significiantMags
@@ -172,13 +179,14 @@ def compare(fft1, fft2):
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
     for val1 in list1:
-	found = False
+        found = False
         for val2 in list2:
 	    if eachisclose(val1, val2): #< tolarance:
-                print("PASS")
                 found = True
                 break
-	if not found:
+        #if we loop through the entire list2 file, and don't find val1
+        #the tracks are not matches.
+        if not found:
             return False
     return True
 
@@ -196,15 +204,16 @@ def distance(tuple1, tuple2):
 
 # creates tolerance for acceptance as a derived file using a ratio
 def eachisclose(val1,val2):
-   for v1, v2 in zip(val1, val2):
-      ratio = 1
-      if v1 > v2:
-         ratio = v2/v1
-      else:
-         ratio = v1/v2
-      if ratio < 0.75:
-         return False
-   return True
+    for v1, v2 in zip(val1, val2):
+        ratio = 1
+        if v1 > v2:
+            ratio = v2/v1
+        else:
+            ratio = v1/v2
+
+        if ratio < 0.75:
+            return False
+    return True
 
 # takes a chunk and returns a tuple of highest value within each of 4 buckets
 # Returns: [#,#,#,#]
@@ -213,38 +222,45 @@ def highestMag(sec):
     # bucket2: -0.25, 0
     # bucket3: 0, 0.25
     # bucket4: 0.25, 0.5
-    bound0 = -0.5
-    bound1 = -0.25
-    bound2 = 0
-    bound3 = 0.25
-    bound4 = 0.5
+    bound0 = 0
+    bound1 = 4000
+    bound2 = 8000
+    bound3 = 12000
+    bound4 = 15000
 
     max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
+    0, 0, 0, 0
+    
+    max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
     0, 0, 0, 0
 
     # loop through the chunk, determining the the magnitude is a max in
     # any of the buckets
     for mag, freq in sec:
         if bound0 <= freq < bound1:
-            if mag > max_bucket1:
-                max_bucket1 = mag
+            if mag > max_mag_bucket1:
+                max_mag_bucket1 = mag
+                max_bucket1 = freq
         elif bound1 <= freq < bound2:
-            if mag > max_bucket2:
-                max_bucket2 = mag
+            if mag > max_mag_bucket2:
+                max_mag_bucket2 = mag
+                max_bucket2 = freq
         elif bound2 <= freq < bound3:
-            if mag > max_bucket3:
-                max_bucket3 = mag
+            if mag > max_mag_bucket3:
+                max_mag_bucket3 = mag
+                max_bucket3 = freq
         elif bound3 <= freq <= bound4:
-            if mag > max_bucket4:
-                max_bucket4 = mag
+            if mag > max_mag_bucket4:
+                max_mag_bucket4 = mag
+                max_bucket4 = freq
 
     return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
 if __name__ == '__main__':
-   verifyArgs()
-   matches = match(sys.argv[2], sys.argv[4])
-   if matches:
-      print "MATCH"
-   else:
-      print "NO MATCH"
-   exit(0)
+    verifyArgs()
+    matches = match(sys.argv[2], sys.argv[4])
+    if matches:
+        print "MATCH"
+    else:
+        print "NO MATCH"
+    exit(0)
