@@ -111,6 +111,10 @@ def convertToMono(audio, name):
         newAudio.setparams((1,  sampwidth, framerate, nframes, \
         comptype, compname))
 
+        # 0 <= i <= nframes
+        # waveData is the data from the two channels at each frame 
+        # unPack is that data converted into a Python-friendly format
+        # average is the two channels averaged together to a mono output
         for i in range(0, nframes):
             waveData = audio.readframes(1)
             unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
@@ -145,6 +149,9 @@ def fftconvert(audio):
 
     # the result array of fft for each second
     ffta = []
+
+    # 0 <= i <= nframes/framerate
+    # ffta is the combination of the magnitudes and frequencies of each chunk
     for i in range(0, nframes/framerate):
         waveData = audio.readframes(framerate)
         unPack = wave.struct.unpack_from(getFormat(framerate, sampwidth), \
@@ -161,6 +168,8 @@ def fftconvert(audio):
 # second in the file
 def significantMags(fft):
     result = []
+
+    # tup is a tuple of the highest values at each second
     for sec in fft:
         tup = highestMag(sec)
         result.append(tup)
@@ -190,8 +199,10 @@ def isSubset(list1, list2):
             return False
     return True
 
+# DEPRECATED
 # creates tolerance for acceptance as a derived file
 def eachisclose(val1,val2):
+
     for v1, v2 in zip(val1, val2):
         ratio = 1
         if v1 > v2:
