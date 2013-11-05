@@ -10,7 +10,7 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 
 
 # global variables
-tolarance = 1e3
+tolarance = 1
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -143,7 +143,7 @@ def fftconvert(audio):
 
     # the result array of fft for each tenth of a second
     ffta = []
-    chunksize = framerate
+    chunksize = framerate/10
     for i in range(0, nframes/chunksize):
         waveData = audio.readframes(chunksize)
         unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), waveData)
@@ -181,7 +181,7 @@ def isSubset(list1, list2):
     for val1 in list1:
         found = False
         for val2 in list2:
-            if distance(val1, val2) < tolarance:
+            if distance(val1, val2) <= tolarance:
                 print("PASS")
                 found = True
                 break
