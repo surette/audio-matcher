@@ -83,8 +83,10 @@ def isMp3(fpath):
 # converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
 def convertToWav(fpath, name):
-    newName = "/tmp/" + name + '.wav'
-    cmd = "/course/cs4500f13/bin/lame --decode --silent "+ fpath + " " + newName
+    newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+    cmd = "/course/cs4500f13/bin/lame --decode --silent " \
+    + fpath + " " + newName
+
     subprocess.call(cmd, shell=True)
     return newName
 
@@ -110,13 +112,21 @@ def convertToMono(audio, name):
     if nchannels != 1:
         newName = "/tmp/mono-" + name + ".wav"
         newAudio = wave.open(newName, 'w')
-        newAudio.setparams((1,  sampwidth, framerate, nframes, comptype, compname))
+        newAudio.setparams((1,  sampwidth, framerate, nframes, \
+        comptype, compname))
 
+        # LOOP INVARIANT:
+        # 0 <= i <= nframes
+        # newAudio has frames written to it consisting of the average of the
+        # two channels from i frames from old audio
         for i in range(0, nframes):
             waveData = audio.readframes(1)
-            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), waveData)
+            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
+            waveData)
+
             average = (unPack[0] + unPack[1])/2
-            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), average))
+            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), \
+            average))
 
         audio.close()
         newAudio.close()
@@ -144,9 +154,15 @@ def fftconvert(audio):
     # the result array of fft for each tenth of a second
     ffta = []
     chunksize = framerate/10
+
+    # LOOP INVARIANT:
+    # 0 <= i <= nframes/framerate
+    # ffta is the combination of the magnitudes and frequencies of each chunk
     for i in range(0, nframes/chunksize):
         waveData = audio.readframes(chunksize)
-        unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), waveData)
+        unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
+        waveData)
+
         mags = abs(np.fft.fft(unPack))
         freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
         # freqs = abs((np.fft.fftfreq(framerate))*framerate)
@@ -155,13 +171,12 @@ def fftconvert(audio):
     # return the array of frequencies
     return ffta
 
-def printHertz(freqs, framerate):
-    print "a second"
-    for freq in freqs:
-        print(freq*framerate) 
-
+# return an array of tuples consisting of the significant values at each
+# second in the file
 def significantMags(fft):
     result = []
+
+    # tup is a tuple of the highest values at each second
     for sec in fft:
         tup = highestMag(sec)
         result.append(tup)
@@ -169,7 +184,7 @@ def significantMags(fft):
     return result
 
 # fft1 and fft2 are arrays of tuples of highest mags defined in
-# significiantMags
+# significantMags
 def compare(fft1, fft2):
     if len(fft1) <= len(fft2):
         return isSubset(fft1, fft2)
@@ -185,8 +200,9 @@ def isSubset(list1, list2):
                 print("PASS")
                 found = True
                 break
-        #if we loop through the entire list2 file, and don't find val1
-        #the tracks are not matches.
+
+        # if we loop through the entire list2 file, and don't find the value
+        # the tracks are not matches.
         if not found:
             return False
     return True
@@ -204,6 +220,7 @@ def distance(tuple1, tuple2):
     return dist
 
 # creates tolerance for acceptance as a derived file using a ratio
+# DEPRECATED
 def eachisclose(val1,val2):
     for v1, v2 in zip(val1, val2):
         ratio = 1
@@ -219,10 +236,10 @@ def eachisclose(val1,val2):
 # takes a chunk and returns a tuple of highest value within each of 4 buckets
 # Returns: [#,#,#,#]
 def highestMag(sec):
-    # bucket1: -0.5, -0.25
-    # bucket2: -0.25, 0
-    # bucket3: 0, 0.25
-    # bucket4: 0.25, 0.5
+    # bucket1: 0, 4000
+    # bucket2: 4000, 8000
+    # bucket3: 8000, 12000
+    # bucket4: 12000, 15000
     bound0 = 0
     bound1 = 4000
     bound2 = 8000
