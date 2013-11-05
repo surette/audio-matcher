@@ -6,6 +6,7 @@ import numpy as np
 import wave
 import struct
 import subprocess
+from mutagen import MP3, HeaderNotFoundError
 
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -68,7 +69,12 @@ def verifyPathToFile(path):
 
 # checks whether the file is mp3 or not
 def isMp3(fpath):
-   return fpath.lower().endswith('.mp3')
+   try:
+      audio = MP3(fpath)
+      return not audio.info.sketchy
+   except HeaderNotFoundError:
+      sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
+      exit(5)
 
 # converts the given mp3 file to wav file and saves it to /tmp,
 # it returns the wav file's path
