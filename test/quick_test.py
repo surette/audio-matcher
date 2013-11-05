@@ -61,11 +61,26 @@ class QuickTest(unittest.TestCase):
     def test_x11_x12_no_match(self):
         self.assertFalse(p4500.match('../A4/x11.wav', '../A4/x12.wav'))
 
-
     # test for incorrect file format (txt)
     def test_non_wav_file_returns_error(self):
         with self.assertRaises(SystemExit):
             p4500.match('../A4/x1.wav', '../README')
+
+    # mp3 tests
+    def test_x1_wav_x1_mp3_match(self):
+        self.assertTrue(p4500.match('../A4/x1.wav', '../A4/x1.mp3'))
+
+    def test_x1_mp3_x2_mp3_match(self):
+        self.assertTrue(p4500.match('../A4/x1.mp3', '../A4/x2.mp3'))
+
+    def test_x2_wav_x1_mp3_match(self):
+        self.assertTrue(p4500.match('../A4/x2.wav', '../A4/x1.mp3'))
+
+    def test_x1_wav_x2_mp3_match(self):
+        self.assertTrue(p4500.match('../A4/x1.wav', '../A4/x2.mp3'))
+
+    def test_x2_wav_x2_mp3_match(self):
+        self.assertTrue(p4500.match('../A4/x2.wav', '../A4/x2.mp3'))
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(QuickTest)
