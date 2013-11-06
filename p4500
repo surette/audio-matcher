@@ -193,19 +193,15 @@ def compare(fft1, fft2):
 
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
+    count = 0
     for val1 in list1:
-        found = False
         for val2 in list2:
             if distance(val1, val2) <= tolarance:
-                print("PASS")
-                found = True
+                count = count + 1
+                #print("PASS")
                 break
 
-        # if we loop through the entire list2 file, and don't find the value
-        # the tracks are not matches.
-        if not found:
-            return False
-    return True
+    return closeRatio(count, len(list1))
 
 # distance function that uses euclidean formula to get the
 # distance between the two given tuples
@@ -216,21 +212,25 @@ def distance(tuple1, tuple2):
         underroot = underroot + math.pow(tuple1[i] - tuple2[i], 2)
     
     dist = math.sqrt(underroot)
-    print(dist)
+    #print(dist)
     return dist
 
 # creates tolerance for acceptance as a derived file using a ratio
 # DEPRECATED
-def eachisclose(val1,val2):
-    for v1, v2 in zip(val1, val2):
-        ratio = 1
-        if v1 > v2:
-            ratio = v2/v1
-        else:
-            ratio = v1/v2
+def closeRatio(val1,val2):
+    val1 = float(val1)
+    val2 = float(val2)
+    ratio = 1.0
+    if val1 > val2:
+        ratio = val2/val1
+    else:
+        ratio = val1/val2
 
-        if ratio < 0.75:
-            return False
+    #print("val1 = " + str(val1))
+    #print("val2 = " + str(val2))
+    #print("ratio = " + str(ratio))
+    if ratio < 0.95:
+        return False
     return True
 
 # takes a chunk and returns a tuple of highest value within each of 4 buckets
