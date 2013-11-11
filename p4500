@@ -12,6 +12,97 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 # global variables
 tolarance = 1
 
+class Fingerprint:
+    def __init__(self, fpath, waveData):
+        self.fpath = fpath
+        self.fingerprint = self.processFingerprint(waveData)
+        (self.nchannels, self.sampwidth, self.framerate, self.nframes, \
+        self.comptype, self.compname) = waveData.getparams()
+
+    def processFingerprint(self, waveData):
+        fft = self.fftconvert(waveData)
+
+        return self.createFingerprints(fft)
+
+    def fftconvert(self, audio):
+        # store attributes of wav file
+        (nchannels, sampwidth, framerate, nframes, comptype, compname) \
+        = audio.getparams()
+
+        # the result array of fft for each tenth of a second
+        ffta = []
+        chunksize = framerate/10
+
+        # LOOP INVARIANT:
+        # 0 <= i <= nframes/framerate
+        # ffta is the combination of the magnitudes and frequencies of each chunk
+        for i in range(0, nframes/chunksize):
+            waveData = audio.readframes(chunksize)
+            unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
+            waveData)
+
+            mags = abs(np.fft.fft(unPack))
+            freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
+            # freqs = abs((np.fft.fftfreq(framerate))*framerate)
+            ffta.append(zip(mags, freqs))
+
+        # return the array of frequencies
+        return ffta
+
+    # return an array of tuples consisting of the significant values at each
+    # second in the file
+    def createFingerprints(self, fft):
+        fingerprint = []
+
+        # tup is a tuple of the highest values at each second
+        for sec in fft:
+            tup = self.significantValues(sec)
+            fingerprint.append(tup)
+
+        return fingerprint
+
+    # takes a chunk and returns a tuple of highest value within each of 4 buckets
+    # Returns: [#,#,#,#]
+    def significantValues(self, sec):
+        # bucket1: 0, 4000
+        # bucket2: 4000, 8000
+        # bucket3: 8000, 12000
+        # bucket4: 12000, 15000
+        bound0 = 0
+        bound1 = 4000
+        bound2 = 8000
+        bound3 = 12000
+        bound4 = 15000
+
+        max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
+        0, 0, 0, 0
+        
+        max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
+        0, 0, 0, 0
+
+        # loop through the chunk, determining the the magnitude is a max in
+        # any of the buckets
+        for mag, freq in sec:
+            if bound0 <= freq < bound1:
+                if mag > max_mag_bucket1:
+                    max_mag_bucket1 = mag
+                    max_bucket1 = freq
+            elif bound1 <= freq < bound2:
+                if mag > max_mag_bucket2:
+                    max_mag_bucket2 = mag
+                    max_bucket2 = freq
+            elif bound2 <= freq < bound3:
+                if mag > max_mag_bucket3:
+                    max_mag_bucket3 = mag
+                    max_bucket3 = freq
+            elif bound3 <= freq <= bound4:
+                if mag > max_mag_bucket4:
+                    max_mag_bucket4 = mag
+                    max_bucket4 = freq
+
+        return max_bucket1, max_bucket2, max_bucket3, max_bucket4
+
+
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
     verifyPathToFile(fpath1)
@@ -25,31 +116,30 @@ def match(fpath1 = None, fpath2 = None):
 
     # check if any of the files is mp3 file. If it is, convert it to wav
     if(isMp3(fpath1)):
-        fpath1 = convertToWav(fpath1, name1)
+        wav_fpath1 = convertToWav(fpath1, name1)
+    else:
+        wav_fpath1 = fpath1
     if(isMp3(fpath2)):
-        fpath2 = convertToWav(fpath2, name2)
+        wav_fpath2 = convertToWav(fpath2, name2)
+    else:
+        wav_fpath2 = fpath2
 
     # makes sure the files are actually wave files
-    (file1, file2) = open_wave_files(fpath1, fpath2)
+    (file1, file2) = open_wave_files(wav_fpath1, wav_fpath2)
 
     # converts the audio data into mono
     file1 = convertToMono(file1, name1)
     file2 = convertToMono(file2, name2)
 
-    # converts the audio data to frequencies
-    file1_freq = fftconvert(file1)
-    file2_freq = fftconvert(file2)
+    fingerprint1 = Fingerprint(fpath1, file1)
+    fingerprint2 = Fingerprint(fpath2, file2)
 
     # close the files now
     file1.close()
     file2.close()
 
-    # get a list of tuple of significant magnitudes for second
-    file1_mag = significantMags(file1_freq)
-    file2_mag = significantMags(file2_freq)
-
     # compare the two arrays of frequencies
-    if compare(file1_mag, file2_mag):
+    if compare(fingerprint1.fingerprint, fingerprint2.fingerprint):
         return True
     else:
         return False
@@ -146,45 +236,8 @@ def getFormat(sampsize, sampwidth):
         fmt = fmt + 'h'
     return fmt
 
-def fftconvert(audio):
-    # store attributes of wav file
-    (nchannels, sampwidth, framerate, nframes, comptype, compname) \
-    = audio.getparams()
-
-    # the result array of fft for each tenth of a second
-    ffta = []
-    chunksize = framerate/10
-
-    # LOOP INVARIANT:
-    # 0 <= i <= nframes/framerate
-    # ffta is the combination of the magnitudes and frequencies of each chunk
-    for i in range(0, nframes/chunksize):
-        waveData = audio.readframes(chunksize)
-        unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
-        waveData)
-
-        mags = abs(np.fft.fft(unPack))
-        freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
-        # freqs = abs((np.fft.fftfreq(framerate))*framerate)
-        ffta.append(zip(mags, freqs))
-
-    # return the array of frequencies
-    return ffta
-
-# return an array of tuples consisting of the significant values at each
-# second in the file
-def significantMags(fft):
-    result = []
-
-    # tup is a tuple of the highest values at each second
-    for sec in fft:
-        tup = highestMag(sec)
-        result.append(tup)
-
-    return result
-
 # fft1 and fft2 are arrays of tuples of highest mags defined in
-# significantMags
+# createFingerprints
 def compare(fft1, fft2):
     if len(fft1) <= len(fft2):
         return isSubset(fft1, fft2)
@@ -232,47 +285,6 @@ def closeRatio(val1,val2):
     if ratio < 0.95:
         return False
     return True
-
-# takes a chunk and returns a tuple of highest value within each of 4 buckets
-# Returns: [#,#,#,#]
-def highestMag(sec):
-    # bucket1: 0, 4000
-    # bucket2: 4000, 8000
-    # bucket3: 8000, 12000
-    # bucket4: 12000, 15000
-    bound0 = 0
-    bound1 = 4000
-    bound2 = 8000
-    bound3 = 12000
-    bound4 = 15000
-
-    max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
-    0, 0, 0, 0
-    
-    max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
-    0, 0, 0, 0
-
-    # loop through the chunk, determining the the magnitude is a max in
-    # any of the buckets
-    for mag, freq in sec:
-        if bound0 <= freq < bound1:
-            if mag > max_mag_bucket1:
-                max_mag_bucket1 = mag
-                max_bucket1 = freq
-        elif bound1 <= freq < bound2:
-            if mag > max_mag_bucket2:
-                max_mag_bucket2 = mag
-                max_bucket2 = freq
-        elif bound2 <= freq < bound3:
-            if mag > max_mag_bucket3:
-                max_mag_bucket3 = mag
-                max_bucket3 = freq
-        elif bound3 <= freq <= bound4:
-            if mag > max_mag_bucket4:
-                max_mag_bucket4 = mag
-                max_bucket4 = freq
-
-    return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
 if __name__ == '__main__':
     verifyArgs()
