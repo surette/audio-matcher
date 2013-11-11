@@ -12,44 +12,199 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 # global variables
 tolarance = 1
 
+class Audio:
+    def __init__(self, fpath):
+        self.fpath = fpath
+        self.wavData = self.createCanonicalForm()
+
+    def createCanonicalForm(self):
+        # extract the name of the file
+        name = self.fpath.rpartition('/')[2].split('.')[0]
+
+        # check if any of the files is mp3 file. If it is, convert it to wav
+        if(self.isMp3(self.fpath)):
+            wav_fpath = self.convertToWav(self.fpath, name)
+        else:
+            wav_fpath = self.fpath
+
+        # makes sure the files are actually wave files
+        wav_file = self.open_wav_file(wav_fpath)
+
+        # converts the audio data into mono
+        mono_file = self.convertToMono(wav_file, name)
+
+        wav_file.close()
+
+        return mono_file
+
+    # checks whether the file is mp3 or not
+    def isMp3(self, fpath):
+        try:
+            audio = MP3(fpath)
+            return not audio.info.sketchy
+        except HeaderNotFoundError:
+            sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
+            exit(5)
+
+    # converts the given mp3 file to wav file and saves it to /tmp,
+    # it returns the wav file's path
+    def convertToWav(self, fpath, name):
+        newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+        cmd = "/course/cs4500f13/bin/lame --decode --silent " \
+        + fpath + " " + newName
+
+        subprocess.call(cmd, shell=True)
+        return newName
+
+    def open_wav_file(self, fpath):
+        try:
+            wav_file = wave.open(fpath, 'r')
+            return wav_file
+        except wave.Error:
+            sys.stderr.write("ERROR: File is not using the correct .wav format\n")
+            exit(3)
+        except:
+            sys.stderr.write("ERROR: Error opening files\n")
+            exit(4)
+
+    # if the audio file is not a mono channel, change it to mono and return it,
+    # otherwise, return the same file
+    def convertToMono(self, audio, name):
+        #store attributes of wav file
+        (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
+        audio.getparams()
+
+        if nchannels != 1:
+            newName = "/tmp/mono-" + name + ".wav"
+            newAudio = wave.open(newName, 'w')
+            newAudio.setparams((1,  sampwidth, framerate, nframes, \
+            comptype, compname))
+
+            # LOOP INVARIANT:
+            # 0 <= i <= nframes
+            # newAudio has frames written to it consisting of the average of the
+            # two channels from i frames from old audio
+            for i in range(0, nframes):
+                wavData = audio.readframes(1)
+                unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
+                wavData)
+
+                average = (unPack[0] + unPack[1])/2
+                newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), \
+                average))
+
+            audio.close()
+            newAudio.close()
+            newAudio = wave.open(newName, 'r')
+            return newAudio
+        else:
+            return audio
+
+
+class Fingerprint:
+    def __init__(self, fpath, wavData):
+        self.fpath = fpath
+        self.fingerprint = self.processFingerprint(wavData)
+        (self.nchannels, self.sampwidth, self.framerate, self.nframes, \
+        self.comptype, self.compname) = wavData.getparams()
+
+    def processFingerprint(self, wavData):
+        fft = self.fftconvert(wavData)
+
+        return self.createFingerprints(fft)
+
+    def fftconvert(self, audio):
+        # store attributes of wav file
+        (nchannels, sampwidth, framerate, nframes, comptype, compname) \
+        = audio.getparams()
+
+        # the result array of fft for each tenth of a second
+        ffta = []
+        chunksize = framerate/10
+
+        # LOOP INVARIANT:
+        # 0 <= i <= nframes/framerate
+        # ffta is the combination of the magnitudes and frequencies of each chunk
+        for i in range(0, nframes/chunksize):
+            wavData = audio.readframes(chunksize)
+            unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
+            wavData)
+
+            mags = abs(np.fft.fft(unPack))
+            freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
+            # freqs = abs((np.fft.fftfreq(framerate))*framerate)
+            ffta.append(zip(mags, freqs))
+
+        # return the array of frequencies
+        return ffta
+
+    # return an array of tuples consisting of the significant values at each
+    # second in the file
+    def createFingerprints(self, fft):
+        fingerprint = []
+
+        # tup is a tuple of the highest values at each second
+        for sec in fft:
+            tup = self.significantValues(sec)
+            fingerprint.append(tup)
+
+        return fingerprint
+
+    # takes a chunk and returns a tuple of highest value within each of 4 buckets
+    # Returns: [#,#,#,#]
+    def significantValues(self, sec):
+        # bucket1: 0, 4000
+        # bucket2: 4000, 8000
+        # bucket3: 8000, 12000
+        # bucket4: 12000, 15000
+        bound0 = 0
+        bound1 = 4000
+        bound2 = 8000
+        bound3 = 12000
+        bound4 = 15000
+
+        max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
+        0, 0, 0, 0
+        
+        max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
+        0, 0, 0, 0
+
+        # loop through the chunk, determining the the magnitude is a max in
+        # any of the buckets
+        for mag, freq in sec:
+            if bound0 <= freq < bound1:
+                if mag > max_mag_bucket1:
+                    max_mag_bucket1 = mag
+                    max_bucket1 = freq
+            elif bound1 <= freq < bound2:
+                if mag > max_mag_bucket2:
+                    max_mag_bucket2 = mag
+                    max_bucket2 = freq
+            elif bound2 <= freq < bound3:
+                if mag > max_mag_bucket3:
+                    max_mag_bucket3 = mag
+                    max_bucket3 = freq
+            elif bound3 <= freq <= bound4:
+                if mag > max_mag_bucket4:
+                    max_mag_bucket4 = mag
+                    max_bucket4 = freq
+
+        return max_bucket1, max_bucket2, max_bucket3, max_bucket4
+
+
 # checks to see if the two wave files are exactly the same
 def match(fpath1 = None, fpath2 = None):
     verifyPathToFile(fpath1)
     verifyPathToFile(fpath2)
-    file1 = None
-    file2 = None
 
-    # extract the name of the file
-    name1 = fpath1.rpartition('/')[2].split('.')[0]
-    name2 = fpath2.rpartition('/')[2].split('.')[0]
+    audio1 = Audio(fpath1)
+    audio2 = Audio(fpath2)
 
-    # check if any of the files is mp3 file. If it is, convert it to wav
-    if(isMp3(fpath1)):
-        fpath1 = convertToWav(fpath1, name1)
-    if(isMp3(fpath2)):
-        fpath2 = convertToWav(fpath2, name2)
-
-    # makes sure the files are actually wave files
-    (file1, file2) = open_wave_files(fpath1, fpath2)
-
-    # converts the audio data into mono
-    file1 = convertToMono(file1, name1)
-    file2 = convertToMono(file2, name2)
-
-    # converts the audio data to frequencies
-    file1_freq = fftconvert(file1)
-    file2_freq = fftconvert(file2)
-
-    # close the files now
-    file1.close()
-    file2.close()
-
-    # get a list of tuple of significant magnitudes for second
-    file1_mag = significantMags(file1_freq)
-    file2_mag = significantMags(file2_freq)
+    fingerprint1 = Fingerprint(audio1.fpath, audio1.wavData)
+    fingerprint2 = Fingerprint(audio2.fpath, audio2.wavData)
 
     # compare the two arrays of frequencies
-    if compare(file1_mag, file2_mag):
+    if compare(fingerprint1.fingerprint, fingerprint2.fingerprint):
         return True
     else:
         return False
@@ -71,70 +226,6 @@ def verifyPathToFile(path):
         sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
         exit(2)
 
-# checks whether the file is mp3 or not
-def isMp3(fpath):
-    try:
-        audio = MP3(fpath)
-        return not audio.info.sketchy
-    except HeaderNotFoundError:
-        sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
-        exit(5)
-
-# converts the given mp3 file to wav file and saves it to /tmp,
-# it returns the wav file's path
-def convertToWav(fpath, name):
-    newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
-    cmd = "/course/cs4500f13/bin/lame --decode --silent " \
-    + fpath + " " + newName
-
-    subprocess.call(cmd, shell=True)
-    return newName
-
-def open_wave_files(fpath1, fpath2):
-    try:
-        file1 = wave.open(fpath1, 'r')
-        file2 = wave.open(fpath2, 'r')
-        return file1, file2
-    except wave.Error:
-        sys.stderr.write("ERROR: File is not using the correct .wav format\n")
-        exit(3)
-    except:
-        sys.stderr.write("ERROR: Error opening files\n")
-        exit(4)
-
-# if the audio file is not a mono channel, change it to mono and return it,
-# otherwise, return the same file
-def convertToMono(audio, name):
-    #store attributes of wav file
-    (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
-    audio.getparams()
-
-    if nchannels != 1:
-        newName = "/tmp/mono-" + name + ".wav"
-        newAudio = wave.open(newName, 'w')
-        newAudio.setparams((1,  sampwidth, framerate, nframes, \
-        comptype, compname))
-
-        # LOOP INVARIANT:
-        # 0 <= i <= nframes
-        # newAudio has frames written to it consisting of the average of the
-        # two channels from i frames from old audio
-        for i in range(0, nframes):
-            waveData = audio.readframes(1)
-            unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
-            waveData)
-
-            average = (unPack[0] + unPack[1])/2
-            newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), \
-            average))
-
-        audio.close()
-        newAudio.close()
-        newAudio = wave.open(newName, 'r')
-        return newAudio
-    else:
-        return audio
-
 # gets the format of the file based on size of sample and sample width
 #  8 bits: size + "b"
 # 16 bits: size + "h"
@@ -146,45 +237,8 @@ def getFormat(sampsize, sampwidth):
         fmt = fmt + 'h'
     return fmt
 
-def fftconvert(audio):
-    # store attributes of wav file
-    (nchannels, sampwidth, framerate, nframes, comptype, compname) \
-    = audio.getparams()
-
-    # the result array of fft for each tenth of a second
-    ffta = []
-    chunksize = framerate/10
-
-    # LOOP INVARIANT:
-    # 0 <= i <= nframes/framerate
-    # ffta is the combination of the magnitudes and frequencies of each chunk
-    for i in range(0, nframes/chunksize):
-        waveData = audio.readframes(chunksize)
-        unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
-        waveData)
-
-        mags = abs(np.fft.fft(unPack))
-        freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
-        # freqs = abs((np.fft.fftfreq(framerate))*framerate)
-        ffta.append(zip(mags, freqs))
-
-    # return the array of frequencies
-    return ffta
-
-# return an array of tuples consisting of the significant values at each
-# second in the file
-def significantMags(fft):
-    result = []
-
-    # tup is a tuple of the highest values at each second
-    for sec in fft:
-        tup = highestMag(sec)
-        result.append(tup)
-
-    return result
-
 # fft1 and fft2 are arrays of tuples of highest mags defined in
-# significantMags
+# createFingerprints
 def compare(fft1, fft2):
     if len(fft1) <= len(fft2):
         return isSubset(fft1, fft2)
@@ -216,7 +270,6 @@ def distance(tuple1, tuple2):
     return dist
 
 # creates tolerance for acceptance as a derived file using a ratio
-# DEPRECATED
 def closeRatio(val1,val2):
     val1 = float(val1)
     val2 = float(val2)
@@ -232,47 +285,6 @@ def closeRatio(val1,val2):
     if ratio < 0.95:
         return False
     return True
-
-# takes a chunk and returns a tuple of highest value within each of 4 buckets
-# Returns: [#,#,#,#]
-def highestMag(sec):
-    # bucket1: 0, 4000
-    # bucket2: 4000, 8000
-    # bucket3: 8000, 12000
-    # bucket4: 12000, 15000
-    bound0 = 0
-    bound1 = 4000
-    bound2 = 8000
-    bound3 = 12000
-    bound4 = 15000
-
-    max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
-    0, 0, 0, 0
-    
-    max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
-    0, 0, 0, 0
-
-    # loop through the chunk, determining the the magnitude is a max in
-    # any of the buckets
-    for mag, freq in sec:
-        if bound0 <= freq < bound1:
-            if mag > max_mag_bucket1:
-                max_mag_bucket1 = mag
-                max_bucket1 = freq
-        elif bound1 <= freq < bound2:
-            if mag > max_mag_bucket2:
-                max_mag_bucket2 = mag
-                max_bucket2 = freq
-        elif bound2 <= freq < bound3:
-            if mag > max_mag_bucket3:
-                max_mag_bucket3 = mag
-                max_bucket3 = freq
-        elif bound3 <= freq <= bound4:
-            if mag > max_mag_bucket4:
-                max_mag_bucket4 = mag
-                max_bucket4 = freq
-
-    return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
 if __name__ == '__main__':
     verifyArgs()
