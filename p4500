@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys
 import os
+import shutil
 import math
 import numpy as np
 import wave
@@ -231,6 +232,10 @@ def verifyTmp():
     if not os.path.exists(tmpFolder):
         os.mkdir(tmpFolder)
 
+# clean the tmp directory by removing any tmp files in our tmp folder
+def cleanTmp():
+    shutil.rmtree(tmpFolder)
+
 # make sure the input is a real file
 def verifyPathToFile(path):
     if not os.path.isfile(path):
@@ -305,4 +310,6 @@ if __name__ == '__main__':
         print "MATCH"
     else:
         print "NO MATCH"
+    
+    cleanTmp()
     exit(0)
