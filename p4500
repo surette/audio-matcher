@@ -1,18 +1,20 @@
 #!/usr/bin/python
 import sys
 import os
-import shutil
 import math
+import shutil
 import numpy as np
 import wave
 import struct
 import subprocess
+import uuid
 from mutagen.mp3 import MP3, HeaderNotFoundError
 
 
 # global variables
-tolarance = 1
-tmpFolder = "/tmp/zaFile/"
+TOLERANCE = 1
+PERCENT_RATIO = 0.80
+TMP_FOLDER = "/tmp/zaFile/"
 
 # handles converting input into our canonical format
 class Audio:
@@ -24,7 +26,7 @@ class Audio:
     # returns opened mono wav file
     def createCanonicalForm(self):
         # extract the name of the file
-        name = self.fpath.rpartition('/')[2].split('.')[0]
+        name = self.fpath.rpartition('/')[2].split('.')[0] + str(uuid.uuid4().hex)
 
         # check if any of the files is mp3 file. If it is, convert it to wav
         if(self.isMp3(self.fpath)):
@@ -54,7 +56,7 @@ class Audio:
     # converts the given mp3 file to wav file and saves it to /tmp,
     # it returns the wav file's path
     def convertToWav(self, fpath, name):
-        newName = tmpFolder + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+        newName = TMP_FOLDER + name + '.wav'
         cmd = "/course/cs4500f13/bin/lame --decode --silent " \
         + fpath + " " + newName
 
@@ -81,7 +83,7 @@ class Audio:
         audio.getparams()
 
         if nchannels != 1:
-            newName = tmpFolder + "mono-" + name + ".wav"
+            newName = TMP_FOLDER + "mono-" + name + ".wav"
             newAudio = wave.open(newName, 'w')
             newAudio.setparams((1,  sampwidth, framerate, nframes, \
             comptype, compname))
@@ -229,12 +231,12 @@ def verifyArgs():
 
 # make sure that the directory in tmp exists, create it otherwise
 def verifyTmp():
-    if not os.path.exists(tmpFolder):
-        os.mkdir(tmpFolder)
+    if not os.path.exists(TMP_FOLDER):
+        os.mkdir(TMP_FOLDER)
 
 # clean the tmp directory by removing any tmp files in our tmp folder
 def cleanTmp():
-    shutil.rmtree(tmpFolder)
+    shutil.rmtree(TMP_FOLDER)
 
 # make sure the input is a real file
 def verifyPathToFile(path):
@@ -271,7 +273,7 @@ def isSubset(list1, list2):
         if len(list1) > len(list2) - i2:
             break
 
-        if distance(val1, val2) <= tolarance:
+        if distance(val1, val2) <= TOLERANCE:
             count = checkSequence(list1, list2, i2) + 1
             if closeRatio(count, len(list1)):
                 return True
@@ -281,7 +283,7 @@ def isSubset(list1, list2):
 def checkSequence(list1, list2, ind):
     count = 0
     for i, j in enumerate(range(ind+1, len(list1)+ind)):
-        if distance(list1[i+1], list2[j]) <= tolarance:
+        if distance(list1[i+1], list2[j]) <= TOLERANCE:
             count = count + 1
 
     return count
@@ -308,11 +310,8 @@ def closeRatio(val1,val2):
     else:
         ratio = val1/val2
 
-    #print("val1 = " + str(val1))
-    #print("val2 = " + str(val2))
-    #print("ratio = " + str(ratio))
     print ratio
-    if ratio < 0.90:
+    if ratio < PERCENT_RATIO:
         return False
     return True
 
