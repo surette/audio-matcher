@@ -11,6 +11,7 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 
 # global variables
 tolarance = 1
+tmpFolder = "/tmp/zaFile/"
 
 # handles converting input into our canonical format
 class Audio:
@@ -52,7 +53,7 @@ class Audio:
     # converts the given mp3 file to wav file and saves it to /tmp,
     # it returns the wav file's path
     def convertToWav(self, fpath, name):
-        newName = "/tmp/" + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
+        newName = tmpFolder + name + '.wav' #fpath.replace(fpath, ".mp3", ".wav")
         cmd = "/course/cs4500f13/bin/lame --decode --silent " \
         + fpath + " " + newName
 
@@ -79,7 +80,7 @@ class Audio:
         audio.getparams()
 
         if nchannels != 1:
-            newName = "/tmp/mono-" + name + ".wav"
+            newName = tmpFolder + "mono-" + name + ".wav"
             newAudio = wave.open(newName, 'w')
             newAudio.setparams((1,  sampwidth, framerate, nframes, \
             comptype, compname))
@@ -225,6 +226,11 @@ def verifyArgs():
       sys.stderr.write("ERROR: Incorrect Flags\n")
       exit(3)
 
+# make sure that the directory in tmp exists, create it otherwise
+def verifyTmp():
+    if not os.path.exists(tmpFolder):
+        os.mkdir(tmpFolder)
+
 # make sure the input is a real file
 def verifyPathToFile(path):
     if not os.path.isfile(path):
@@ -293,6 +299,7 @@ def closeRatio(val1,val2):
 
 if __name__ == '__main__':
     verifyArgs()
+    verifyTmp()
     matches = match(sys.argv[2], sys.argv[4])
     if matches:
         print "MATCH"
