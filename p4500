@@ -14,7 +14,7 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 # global variables
 TOLERANCE = 1
 PERCENT_RATIO = 0.80
-TMP_FOLDER = "/tmp/zaFile/"
+TMP_FOLDER = "/tmp/zaFile" + str(uuid.uuid4().hex) + "/"
 FPATH_DICT = dict()
 
 # handles converting input into our canonical format
@@ -201,6 +201,20 @@ class Fingerprint:
 
         return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
+# check all matches between list1 and list2
+def allMatch(list1, list2):
+    for path1 in list1:
+        for path2 in list2:
+            name1 = path1.rpartition('/')[2]
+            name2 = path2.rpartition('/')[2]
+            if match(path1, path2):
+                if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
+                    print "MATCH " + name1 + " " + name2
+                else:
+                    print "MATCH " + name2 + " " + name1
+            else:
+                print "NO MATCH " + name1 + " " + name2
+
 # checks to see if the two wav files are exactly the same
 def match(fpath1 = None, fpath2 = None):
     verifyPathToFile(fpath1)
@@ -210,10 +224,7 @@ def match(fpath1 = None, fpath2 = None):
     fingerprint2 = getFingerprint(fpath2)
 
     # compare the two arrays of frequencies
-    if compare(fingerprint1.fingerprint, fingerprint2.fingerprint):
-        return True
-    else:
-        return False
+    return compare(fingerprint1.fingerprint, fingerprint2.fingerprint):
 
 # If the file path is not in the dictionary, create it and add it,
 # then return the fingerprint of the file path.
