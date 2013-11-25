@@ -244,8 +244,9 @@ def verifyArgs():
         sys.stderr.write("ERROR: Wrong number of arguments\n")
         exit(1)
     # Verify that all the flags are correct
-    if (sys.argv[1] != '-f' or sys.argv[1] != '-d' 
-            or sys.argv[3] != '-f' or sys.argv[3] != 'd'):
+    if ((sys.argv[1] != '-f' and sys.argv[1] != '-d') or 
+       (sys.argv[3] != '-f' and sys.argv[3] != '-d')):
+        print sys.argv[1] + " " + sys.argv[3]
         sys.stderr.write("ERROR: Incorrect Flags\n")
         exit(3)
 
@@ -272,12 +273,11 @@ def getPaths(flag, path):
         fpaths.append(path)
     else:
         # obtains list of all the short names of files in directory
-        fnames = os.walk(path)[2]
-        print fnames
-        # short names become full paths
-        fpaths = [os.path.join(path, name) for name in fnames]
-        print fpaths
-
+        for (dirpath, dirnames, filenames) in os.walk(path):
+            fnames = filenames
+            fpaths = [os.path.join(path, name) for name in fnames]
+            break
+            
     return fpaths
 
 
