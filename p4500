@@ -220,19 +220,48 @@ def match(fpath1 = None, fpath2 = None):
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
-   #verify that there are the correct number of arguements
-   if len(sys.argv) != 5:
-      sys.stderr.write("ERROR: Wrong number of arguments\n")
-      exit(1)
-   # Verify that all the flags are correct
-   if sys.argv[1] != '-f' or sys.argv[3] != '-f':
-      sys.stderr.write("ERROR: Incorrect Flags\n")
-      exit(3)
+
+    # Verify that there are the correct number of arguments
+    if len(sys.argv) != 5:
+        sys.stderr.write("ERROR: Wrong number of arguments\n")
+        exit(1)
+    # Verify that all the flags are correct
+    if (sys.argv[1] != '-f' or sys.argv[1] != '-d' 
+            or sys.argv[3] != '-f' or sys.argv[3] != 'd'):
+        sys.stderr.write("ERROR: Incorrect Flags\n")
+        exit(3)
 
 # make sure that the directory in tmp exists, create it otherwise
 def verifyTmp():
     if not os.path.exists(TMP_FOLDER):
         os.mkdir(TMP_FOLDER)
+
+# create lists of filepaths of inputs
+def parseArgs():
+
+    # hold names of all filepaths to be compared
+    fpaths1 = getPaths(sys.argv[1], sys.argv[2])
+    fpaths2 = getPaths(sys.argv[3], sys.argv[4])
+
+    return fpaths1, fpaths2
+
+# obtains filepaths
+def getPaths(flag, path):
+
+    fpaths = list()
+
+    if (flag == '-f'):
+        fpaths.append(path)
+    else:
+        # obtains list of all the short names of files in directory
+        fnames = os.walk(path)[2]
+        print fnames
+        # short names become full paths
+        fpaths = [os.path.join(path, name) for name in fnames]
+        print fpaths
+
+    return fpaths
+
 
 # clean the tmp directory by removing any tmp files in our tmp folder
 def cleanTmp():
@@ -318,11 +347,9 @@ def closeRatio(val1,val2):
 if __name__ == '__main__':
     verifyArgs()
     verifyTmp()
-    matches = match(sys.argv[2], sys.argv[4])
-    if matches:
-        print "MATCH"
-    else:
-        print "NO MATCH"
+    fpaths1, fpaths2 = parseArgs()
+
+    allMatch(fpaths1, fpaths2)
     
     cleanTmp()
     exit(0)
