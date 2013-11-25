@@ -224,7 +224,7 @@ def match(fpath1 = None, fpath2 = None):
     fingerprint2 = getFingerprint(fpath2)
 
     # compare the two arrays of frequencies
-    return compare(fingerprint1.fingerprint, fingerprint2.fingerprint):
+    return compare(fingerprint1.fingerprint, fingerprint2.fingerprint)
 
 # If the file path is not in the dictionary, create it and add it,
 # then return the fingerprint of the file path.
