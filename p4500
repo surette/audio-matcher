@@ -13,7 +13,7 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 
 # global variables
 TOLERANCE = 1
-PERCENT_RATIO = 0.80
+PERCENT_RATIO = 0.40
 TMP_FOLDER = "/tmp/zaFile" + "-" + str(uuid.uuid4().hex) + "/"
 FPATH_DICT = dict()
 
@@ -66,12 +66,12 @@ class Audio:
     def convertToMonoWav(self, fpath, name):
         #convert mp3 to mono mp3
         mono = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + "_mono.mp3"
-        cmd = "/course/cs4500f13/bin/lame -a " + fpath + " " + mono
+        cmd = "/course/cs4500f13/bin/lame -a --silent -q2 -b 16 --resample 22050 " + fpath + " " + mono
         subprocess.call(cmd, shell=True)
 
         #convert to wav
         newName = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + '.wav'
-        cmd = "/course/cs4500f13/bin/lame --decode --silent " \
+        cmd = "/course/cs4500f13/bin/lame --decode --silent -q2 " \
         + mono + " " + newName
 
         subprocess.call(cmd, shell=True)
@@ -370,6 +370,7 @@ def closeRatio(val1,val2):
     else:
         ratio = val1/val2
 
+    print ratio
     if ratio < PERCENT_RATIO:
         return False
     return True
