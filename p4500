@@ -74,7 +74,7 @@ class Audio:
             sys.stderr.write("ERROR: File is not using a correct audio format\n")
             exit(3)
         except:
-            sys.stderr.write("ERROR: Error opening file: " + fpath + "\n")
+            sys.stderr.write("ERROR: Error opening file or file is blank\n")
             exit(4)
 
 # creates and stores identifying vector for input audio
@@ -234,6 +234,16 @@ def verifyArgs():
         sys.stderr.write("ERROR: Incorrect Flags\n")
         exit(3)
 
+    if   (sys.argv[1] == '-f'):
+        verifyPathToFile(sys.argv[2])
+    elif (sys.argv[1] == '-d'):
+        verifyPathToDir(sys.argv[2])
+
+    if   (sys.argv[3] == '-f'):
+        verifyPathToFile(sys.argv[4])
+    elif (sys.argv[3] == '-d'):
+        verifyPathToDir(sys.argv[4])
+
 # make sure that the directory in tmp exists, create it otherwise
 def verifyTmp():
     if not os.path.exists(TMP_FOLDER):
@@ -273,6 +283,11 @@ def cleanTmp():
 def verifyPathToFile(path):
     if not os.path.isfile(path):
         sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
+        exit(2)
+
+def verifyPathToDir(path):
+    if not os.path.isdir(path):
+        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a Directory\n")
         exit(2)
 
 # gets the format of the file based on size of sample and sample width
