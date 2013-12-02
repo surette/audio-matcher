@@ -27,7 +27,7 @@ class Audio:
     # returns opened mono wav file
     def createCanonicalForm(self):
         # extract the name of the file
-        name = self.fpath.rpartition('/')[2].split('.')[0] + str(uuid.uuid4().hex)
+        name = self.fpath.rpartition('/')[2].split('.')[0] + "-" + str(uuid.uuid4().hex)
 
         # if a file is an mp3 but does not have a .mp3 extension,
         # create a file in the tmp directory that takes the input file and
@@ -41,7 +41,7 @@ class Audio:
             wav_fpath = self.convertToMonoWav(self.fpath, name)
 
             # makes sure the files are actually wave files
-            wav_file = self.open_wav_file(wav_fpath)
+        wav_file = self.open_wav_file(wav_fpath)
 
         return wav_file
 
@@ -91,7 +91,7 @@ class Audio:
             sys.stderr.write("ERROR: File is not using a correct audio format\n")
             exit(3)
         except:
-            sys.stderr.write("ERROR: Error opening files\n")
+            sys.stderr.write("ERROR: Error opening file: " + fpath + "\n")
             exit(4)
 
 # creates and stores identifying vector for input audio
@@ -193,16 +193,20 @@ def allMatch(list1, list2):
         for path2 in list2:
             name1 = path1.rpartition('/')[2]
             name2 = path2.rpartition('/')[2]
-            if match(path1, path2):
-                if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
-                    print "MATCH " + name1 + " " + name2
+
+            if isSupportedFileType(path1) and isSupportedFileType(path2):
+                if match(path1, path2):
+                    if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
+                        print "MATCH " + name1 + " " + name2
+                    else:
+                        print "MATCH " + name2 + " " + name1
                 else:
-                    print "MATCH " + name2 + " " + name1
+                    if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
+                        print "NO MATCH " + name1 + " " + name2
+                    else:
+                        print "NO MATCH " + name2 + " " + name1
             else:
-                if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
-                    print "NO MATCH " + name1 + " " + name2
-                else:
-                    print "NO MATCH " + name2 + " " + name1
+                sys.stderr.write("ERROR: Not a Supported File Type\n")
 
 # checks to see if the two wav files are exactly the same
 def match(fpath1 = None, fpath2 = None):
@@ -224,6 +228,14 @@ def getFingerprint(fpath):
         FPATH_DICT[fpath] = fingerprint
     
     return FPATH_DICT[fpath]
+
+def isSupportedFileType(fpath):
+    cmd = "file " + fpath
+    output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True).communicate()[0]
+    if(("MPEG ADTS, layer III" in output) or ("MP3" in output) or ("WAVE audio" in output)):
+        return True
+    else:
+        return False
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
