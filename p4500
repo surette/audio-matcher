@@ -36,12 +36,16 @@ class Audio:
         # makes sure the files are actually wave files
         wav_file = self.open_wav_file(wav_fpath)
 
-        # converts the audio data into mono
-        # mono_file = self.convertToMono(wav_file, name)
-
-        # wav_file.close()
-
         return wav_file
+
+    # if a file is an mp3 but does not have a .mp3 extension,
+    # create a file in the tmp directory that takes the input file and
+    # changes its extension to .mp3
+    def toMp3Extension(self):
+        if isMp3(self, self.fpath) and \
+        self.fpath.rpartition('/')[2].split('.')[2] != '.mp3':
+            
+
 
     # checks whether the file is mp3 or not
     def isMp3(self, fpath):
@@ -51,16 +55,6 @@ class Audio:
         except HeaderNotFoundError:
             sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
             exit(5)
-
-    # converts the given mp3 file to wav file and saves it to /tmp,
-    # it returns the wav file's path
-    def convertToWav(self, fpath, name):
-        newName = TMP_FOLDER + name + '.wav'
-        cmd = "/course/cs4500f13/bin/lame --decode --silent " \
-        + fpath + " " + newName
-
-        subprocess.call(cmd, shell=True)
-        return newName
 
     #Converts an mp3 to a mono wav file using lame
     def convertToMonoWav(self, fpath, name):
@@ -88,39 +82,6 @@ class Audio:
         except:
             sys.stderr.write("ERROR: Error opening files\n")
             exit(4)
-
-    # if the audio file is not a mono channel, change it to mono and return it,
-    # otherwise, return the same file
-    def convertToMono(self, audio, name):
-        #store attributes of wav file
-        (nchannels, sampwidth, framerate, nframes, comptype, compname) = \
-        audio.getparams()
-
-        if nchannels != 1:
-            newName = TMP_FOLDER + "mono-" + name + ".wav"
-            newAudio = wave.open(newName, 'w')
-            newAudio.setparams((1,  sampwidth, framerate, nframes, \
-            comptype, compname))
-
-            # LOOP INVARIANT:
-            # 0 <= i <= nframes
-            # newAudio has frames written to it consisting of the average of the
-            # two channels from i frames from old audio
-            for i in range(0, nframes):
-                wavData = audio.readframes(1)
-                unPack = wave.struct.unpack(getFormat(nchannels, sampwidth), \
-                wavData)
-
-                average = (unPack[0] + unPack[1])/2
-                newAudio.writeframes(wave.struct.pack(getFormat(1, sampwidth), \
-                average))
-
-            audio.close()
-            newAudio.close()
-            newAudio = wave.open(newName, 'r')
-            return newAudio
-        else:
-            return audio
 
 # creates and stores identifying vector for input audio
 class Fingerprint:
