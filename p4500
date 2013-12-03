@@ -128,7 +128,7 @@ class Audio:
         except wave.Error:
             fancyExit("File is not using a correct audio format", 3)
         except:
-            fancyExit("Error opening file " + fpath, 4)
+            fancyExit("Error opening file ", 4)
 
 # creates and stores identifying vector for input audio
 class Fingerprint:
@@ -146,7 +146,6 @@ class Fingerprint:
 
     # runs the fft on smaller chunks of the input audio
     def fftconvert(self, audio):
-        # print "in FFT"
         # store attributes of wav file
         (nchannels, sampwidth, framerate, nframes, comptype, compname) \
         = audio.getparams()
@@ -233,22 +232,23 @@ def allMatch(list1, list2):
             name2 = path2.rpartition('/')[2]
 
             if isSupportedFileType(path1) and isSupportedFileType(path2):
-                if match(path1, path2):
-                    if len(FPATH_DICT[path1].fingerprint) < \
-                    len(FPATH_DICT[path2].fingerprint):
-                        print "MATCH " + name1 + " " + name2
-                    else:
-                        print "MATCH " + name2 + " " + name1
-                else:
-                    if len(FPATH_DICT[path1].fingerprint) < \
-                    len(FPATH_DICT[path2].fingerprint):
-                        print "NO MATCH " + name1 + " " + name2
-                    else:
-                        print "NO MATCH " + name2 + " " + name1
+                supportedFiles(path1, path2)
             else:
-                sys.stderr.write("ERROR: Not a Supported File Type\n")
-                EXIT_CODE = 10 
+                printError("Not a Supported File Type", 10)
 
+# If the files are supported, we check whether they match or not,
+# if they match, we print "MATCH" along with the shorter file
+# followed by the longer file. Otherwise, it prints "NO MATCH"
+def supportedFiles(path1, path2):
+    if match(path1, path2):
+        if len(FPATH_DICT[path1].fingerprint) < \
+           len(FPATH_DICT[path2].fingerprint):
+            print "MATCH " + name1 + " " + name2
+        else:
+            print "MATCH " + name2 + " " + name1
+    else:
+       print "NO MATCH"
+ 
 # checks to see if the two wav files are exactly the same
 def match(fpath1 = None, fpath2 = None):
     verifyPathToFile(fpath1)
@@ -333,12 +333,8 @@ def getPaths(flag, path):
             # if there is a subdirectory in the target directory, print 
             # an error and continue execution with any actual files found
             if dirnames:
-                sys.stderr.write("ERROR: At least one subdirectory " + \
-                "detected in " + path + ". Files in subdirectories " + \
-                "are not matched.\n")
-                
-                EXIT_CODE = 12
-
+                printError("At least one subdirectory detected in " + path + \
+                ". Files in subdirectories are not matched.", 12)
             break
             
     return fpaths
@@ -393,7 +389,6 @@ def compare(fprint1, fprint2):
 # Called by compare
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
-    # print "in matching isSubset"
     count = 0
     val1 = list1[0]
 
@@ -443,17 +438,24 @@ def closeRatio(val1,val2):
     else:
         ratio = val1/val2
 
-    #print ratio
     if ratio < PERCENT_RATIO:
         return False
     return True
+
+# Prints an error to standard error, but does not terminate yet.
+# instead it changes the global variable for exit code.
+def printError(message, code):
+    if message != "":
+        sys.stderr.write("ERROR: " + message + "\n")
+
+    EXIT_CODE = code
 
 # Custom Exit method for days
 def fancyExit(message, code):
     if message != "":
         sys.stderr.write("ERROR: " + message + "\n")
 
-    #cleanTmp()
+    cleanTmp()
     exit(code)
 
 if __name__ == '__main__':
