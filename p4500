@@ -56,7 +56,7 @@ class Audio:
                 wav_fpath = self.convertToMonoWav(path, name) 
 
         # makes sure the files are actually wave files
-        wav_file = self.open_wav_file(wav_fpath)
+        wav_file = self.open_wav_file(path)
 
         return wav_file
 
@@ -93,8 +93,7 @@ class Audio:
         subprocess.call(cmd, shell=True)
 
         #convert to wav
-        newPath = self.convertToWav(mono, name)
-        return newPath
+        return self.convertToWav(mono, name)
 
     # converts an audio mp3 to wav file using lame
     def convertToWav(self, mono, name):
@@ -303,7 +302,7 @@ def parseArgs():
 
     return fpaths1, fpaths2
 
-# obtains filepaths
+# Purpose: obtains filepaths from the locations specificed in the input
 def getPaths(flag, path):
 
     fpaths = list()
@@ -326,25 +325,26 @@ def getPaths(flag, path):
             
     return fpaths
     
-# make sure that the directory in tmp exists, create it otherwise
+# Purpose: makes sure that the directory in tmp exists, create it otherwise
 def verifyTmp():
     if not os.path.exists(TMP_FOLDER):
         os.mkdir(TMP_FOLDER)
 
-# clean the tmp directory by removing any tmp files in our tmp folder
+# Purpose: clean the tmp directory by removing any tmp files in our tmp folder
 def cleanTmp():
     shutil.rmtree(TMP_FOLDER)
 
-# make sure the input is a real file
+# Purpose: make sure the input is a real file
 def verifyPathToFile(path):
     if not os.path.isfile(path):
         fancyExit("Path " + path + " is invalid/is not a file", 2)
 
+# Purpose: make sure the input is a real directory
 def verifyPathToDir(path):
     if not os.path.isdir(path):
         fancyExit("Path " + path + "is invalid/is not a Directory", 2)
 
-# gets the format of the file based on size of sample and sample width
+# Purpose: gets the format of the file based on size of sample and sample width
 #  8 bits: size + "b"
 # 16 bits: size + "h"
 def getFormat(sampsize, sampwidth):
@@ -355,14 +355,24 @@ def getFormat(sampsize, sampwidth):
         fmt = fmt + 'h'
     return fmt
 
-# fft1 and fft2 are arrays of tuples of highest mags defined in
+# Purpose: Compares the two fingerprints to determine if there is a match
+# fprint1 and fprint2 are arrays of tuples of significant freqs defined in
 # createFingerprints
-def compare(fft1, fft2):
-    if len(fft1) <= len(fft2):
-        return isSubset(fft1, fft2)
+def compare(fprint1, fprint2):
+    # if both inputs are blank they are a match 
+    if len(fprint1) and len(fprint2) == 0:
+        return True
+    # if one input is blank they do not match
+    elif len(fprint1) or len(fprint2) == 0:
+        return False
+    #else, check the large against the smaller
+    elif len(fprint1) <= len(fprint2):
+        return isSubset(fprint1, fprint2)
     else:
-        return isSubset(fft2, fft1)
+        return isSubset(fprint2, fprint1)
 
+# Purpose: Checks to see if the smaller file is contained in the larger
+# Called by compare
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
     # print "in matching isSubset"
