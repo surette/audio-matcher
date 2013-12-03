@@ -212,9 +212,6 @@ class Fingerprint:
 def allMatch(list1, list2):
     for path1 in list1:
         for path2 in list2:
-            name1 = path1.rpartition('/')[2]
-            name2 = path2.rpartition('/')[2]
-
             if isSupportedFileType(path1) and isSupportedFileType(path2):
                 supportedFiles(path1, path2)
             else:
@@ -224,6 +221,9 @@ def allMatch(list1, list2):
 # if they match, we print "MATCH" along with the shorter file
 # followed by the longer file. Otherwise, it prints "NO MATCH"
 def supportedFiles(path1, path2):
+    name1 = path1.rpartition('/')[2]
+    name2 = path2.rpartition('/')[2]
+
     if match(path1, path2):
         if len(FPATH_DICT[path1].fingerprint) < \
            len(FPATH_DICT[path2].fingerprint):
