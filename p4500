@@ -51,7 +51,7 @@ class Audio:
                 wav_fpath = self.convertToMonoWav(path, name)
         elif isMp3(path):
             if self.emptyMp3(path):
-                wav_fpath = self.converToWav(path, name)
+                wav_fpath = self.convertToWav(path, name)
             else:
                 wav_fpath = self.convertToMonoWav(path, name) 
 
@@ -360,10 +360,10 @@ def getFormat(sampsize, sampwidth):
 # createFingerprints
 def compare(fprint1, fprint2):
     # if both inputs are blank they are a match 
-    if len(fprint1) and len(fprint2) == 0:
+    if len(fprint1) == 0  and len(fprint2) == 0:
         return True
     # if one input is blank they do not match
-    elif len(fprint1) or len(fprint2) == 0:
+    elif len(fprint1) == 0 or len(fprint2) == 0:
         return False
     #else, check the large against the smaller
     elif len(fprint1) <= len(fprint2):
