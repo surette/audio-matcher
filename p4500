@@ -81,11 +81,9 @@ class Audio:
             wav_file = wave.open(fpath, 'r')
             return wav_file
         except wave.Error:
-            sys.stderr.write("ERROR: File is not using a correct audio format\n")
-            fancyExit(3)
+            fancyExit("File is not using a correct audio format", 3)
         except:
-            sys.stderr.write("ERROR: Error opening file or file is blank\n")
-            fancyExit(4)
+            fancyExit("Error opening file " + fpath, 4)
 
 # creates and stores identifying vector for input audio
 class Fingerprint:
@@ -240,14 +238,12 @@ def verifyArgs():
 
     # Verify that there are the correct number of arguments
     if len(sys.argv) != 5:
-        sys.stderr.write("ERROR: Wrong number of arguments\n")
-        fancyExit(1)
+        fancyExit("Wrong number of arguments", 1)
+
     # Verify that all the flags are correct
     if ((sys.argv[1] != '-f' and sys.argv[1] != '-d') or 
        (sys.argv[3] != '-f' and sys.argv[3] != '-d')):
-        print sys.argv[1] + " " + sys.argv[3]
-        sys.stderr.write("ERROR: Incorrect Flags\n")
-        fancyExit(3)
+        fancyExit("Incorrect Flags", 3)
 
     if   (sys.argv[1] == '-f'):
         verifyPathToFile(sys.argv[2])
@@ -296,13 +292,11 @@ def cleanTmp():
 # make sure the input is a real file
 def verifyPathToFile(path):
     if not os.path.isfile(path):
-        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-        fancyExit(2)
+        fancyExit("Path " + path + " is invalid/is not a file", 2)
 
 def verifyPathToDir(path):
     if not os.path.isdir(path):
-        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a Directory\n")
-        fancyExit(2)
+        fancyExit("Path " + path + "is invalid/is not a Directory", 2)
 
 # gets the format of the file based on size of sample and sample width
 #  8 bits: size + "b"
@@ -377,7 +371,8 @@ def closeRatio(val1,val2):
     return True
 
 # Custom Exit method for days
-def fancyExit(code):
+def fancyExit(message, code):
+    sys.stderr.write("ERROR: " + message + "\n")
     cleanTmp()
     exit(code)
 
