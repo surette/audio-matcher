@@ -11,18 +11,34 @@ import uuid
 from mutagen.mp3 import MP3
 
 
-# global variables
-TOLERANCE = 1
+# Global Variables
+
+# How many hertz away to be considered a match
+# Used by checkSequence
+TOLERANCE = 1 
+
+# 60% of fingerprints need to match in order to be considered "MATCH"
 PERCENT_RATIO = 0.60
+
+# Name of tmp directory created to handle all temporary files created
 TMP_FOLDER = "/tmp/zaFile" + "-" + str(uuid.uuid4().hex) + "/"
+
+# A mapping of unique filepaths to their respective fingerprints
 FPATH_DICT = dict()
+
+# Used when we want to set a non-zero exit code but not exit immediately
 EXIT_CODE = 0
 
-# handles converting input into our canonical format
+
+
+# Represents an audio structure that contains info about each audio file
+# Handles converting audio input into our canonical format
 class Audio:
     def __init__(self, fpath):
-        self.fpath = fpath
-        self.wavData = self.createCanonicalForm()
+        # full, original filepath to the audio file
+        self.fpath = fpath 
+        # wav opened version of audio file in canonical form
+        self.wavData = self.createCanonicalForm() 
 
     # performs checks and mono conversions on audio file, 
     # returns opened mono wav file
