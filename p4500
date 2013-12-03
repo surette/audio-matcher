@@ -16,6 +16,7 @@ TOLERANCE = 1
 PERCENT_RATIO = 0.40
 TMP_FOLDER = "/tmp/zaFile" + "-" + str(uuid.uuid4().hex) + "/"
 FPATH_DICT = dict()
+EXIT_CODE = 0
 
 # handles converting input into our canonical format
 class Audio:
@@ -198,6 +199,7 @@ def allMatch(list1, list2):
                         print "NO MATCH " + name2 + " " + name1
             else:
                 sys.stderr.write("ERROR: Not a Supported File Type\n")
+                EXIT_CODE = 10 
 
 # checks to see if the two wav files are exactly the same
 def match(fpath1 = None, fpath2 = None):
