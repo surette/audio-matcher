@@ -220,6 +220,9 @@ def allMatch(list1, list2):
             else:
                 printError("Not a Supported File Type", 10)
 
+# If the files are supported, we check whether they match or not,
+# if they match, we print "MATCH" along with the shorter file
+# followed by the longer file. Otherwise, it prints "NO MATCH"
 def supportedFiles(path1, path2):
     if match(path1, path2):
         if len(FPATH_DICT[path1].fingerprint) < \
@@ -228,11 +231,7 @@ def supportedFiles(path1, path2):
         else:
             print "MATCH " + name2 + " " + name1
     else:
-        if len(FPATH_DICT[path1].fingerprint) < \
-           len(FPATH_DICT[path2].fingerprint):
-            print "NO MATCH " + name1 + " " + name2
-        else:
-            print "NO MATCH " + name2 + " " + name1
+       print "NO MATCH"
  
 # checks to see if the two wav files are exactly the same
 def match(fpath1 = None, fpath2 = None):
