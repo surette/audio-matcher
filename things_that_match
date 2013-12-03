@@ -1,0 +1,137 @@
+This directory holds some of the recordings used to grade
+CS 4500 assignment 5.
+
+The originals (see credits and licensing information at end):
+
+Sor3508.mp3                    Sor Opus 35, Number 8 (deliberately butchered)
+JanacekSinfoniettaPart1.mp3    first movement of Janacek's Sinfonietta
+JanacekSinfoniettaPart5.mp3    fifth movement of Janacek's Sinfonietta
+RussianEasterOverture.mp3      Rimsky-Korsakov's Russian Easter Overture
+WhoopeeTiYiYo.mp3              traditional, recorded by Sons of the Pioneers
+Piste1.mp3                     Piste 1, by Son Altesse curieuse
+bad_guy_in_yer_bar.mp3         bad guy in yer bar, by Baron Knoxburry
+MMW.mp3                        MMW, by Mild Maynyrd
+
+WAVE files derived from those originals:
+
+Sor3508.wav
+JanacekSinfoniettaPart1.wav
+JanacekSinfoniettaPart5.wav
+RussianEasterOverture.wav
+WhoopeeTiYiYo.wav
+Piste1.wav
+bad_guy_in_yer_bar.wav
+MMW.wav
+
+WAVE files excerpted from those originals:
+
+bad0616.wav       10-second extract (6, 16) from bad_guy_in_yer_bar.wav
+bad2131.wav       10-second extract (21, 31) from bad_guy_in_yer_bar.wav
+MMW2837.wav        9-second extract (28, 37) from MMW.wav
+MMW1237.wav       15-second extract (12, 37) from MMW.wav
+Piste2841.wav     13-second extract (28, 41) from Piste1.wav
+Piste84102.wav    18-second extract (84, 102) from Piste1.wav
+Piste120135.wav   15-second extract (120, 135) from Piste1.wav
+Whoopee0517.wav   12-second extract (5, 17) from WhoopeeTiYiYo.wav
+Whoopee5061.wav   11-second extract (50, 61) from WhoopeeTiYo.wav
+Jan0029.wav       29-second extract (0, 29) from JanacekSinfoniettaPart1.wav
+Jan1028.wav       18-second extract (10, 28) from JanacekSinfoniettaPart5.wav
+Jan247283.wav     36-second extract (247, 283) from JanacekSinfoniettaPart5.wav
+Rus138152.wav     14-second extract (138, 152) from RussianEasterOverture.wav
+Rus639660.wav     21-second extract (639, 660) from RussianEasterOverture.wav
+Rus882908.wav     26-second extract (882, 908) from RussianEasterOverture.wav
+Sor1929.wav       10-second extract (19, 29) from Sor3508.wav
+Sor4959.wav       10-second extract (49, 59) from Sor3508.wav
+
+WAVE files modified from those excerpts:
+
+z00.wav           empty WAVE file
+z01.wav           bad0616.wav with noise added to low-order bits
+z02.wav           bad2131.wav at different volume (1.02, .96)
+z03.wav           MMW2837.wav with channels mixed (.9, .1, .1, .9)
+z04.wav           MMW1237.wav with noise added and channels swapped
+z05.wav           Piste2841.wav with noise added and channels swapped
+z06.wav           Piste84102.wav at different volume (.9, .95)
+z07.wav           Piste120135.wav converted to MP3 and back to WAVE
+z08.wav           Whoopee0517.wav with noise added and channels swapped
+z09.wav           Whoopee5061.wav converted to MP3 and back to WAVE
+z10.wav           Jan0029.wav converted to MP3 and back to WAVE
+z11.wav           Jan1028.wav converted to MP3 and back to WAVE
+z12.wav           Jan247283.wav at different volume (1.1, 1.1)
+z13.wav           Rus138152.wav with noise added and channels swapped
+z14.wav           Rus639660.wav with channels mixed (.9, .1, .1, .9)
+z15.wav           Rus882908.wav converted to MP3 and back to WAVE
+z16.wav           Sor1929.wav at different volume (.8, .8)
+z17.wav           Sor4959.wav at different volume (.7, .7)
+
+z18.wav           z08.wav in mono at 11.025 kHz sampling rate
+z19.wav           z11.wav at 22.050 kHz sampling rate
+z20.wav           z17.wav in mono
+
+MP3 files obtained from those WAVE files have the same names except
+with a .mp3 suffix instead of the .wav suffix.
+
+z101              is the same as z01.wav
+z102.mp3          is the same as z02.wav
+z111              is the same as z11.mp3
+z116.wav          is the same as z16.mp3
+
+Directories D0 through D4 contain recordings made by the instructor.
+Directories D5 through D9 contain subsets of the files described above.
+
+
+================================================================
+
+CREDITS
+
+================
+
+Instructor's recordings:
+
+====
+
+Sor3508.mp3                    Sor Opus 35, Number 8 (deliberately butchered)
+
+====
+
+Originals downloaded from www.musopen.org :
+
+JanacekSinfoniettaPart1.mp3    first movement of Janacek's Sinfonietta
+JanacekSinfoniettaPart5.mp3    fifth movement of Janacek's Sinfonietta
+RussianEasterOverture.mp3      Rimsky-Korsakov's Russian Easter Overture
+
+Originals downloaded from the Free Music Archive:
+
+====
+
+WhoopeeTiYiYo.mp3              traditional, recorded by Sons of the Pioneers
+
+licensing: Attribution-Noncommercial-Share Alike 3.0 US License
+
+http://freemusicarchive.org/music/The_Sons_Of_The_Pioneers/Sons_of_the_Pioneers__Symphonies_of_the_Sage/Whoopee_Ti_Yi_Yo
+
+====
+
+Piste1.mp3                     Piste 1, by Son Altesse curieuse
+
+licensing: Attribution-Noncommercial-Share Alike 3.0 US License
+
+http://freemusicarchive.org/music/Son_Altesse_curieuse/Frivolits/01-Preambule
+
+====
+
+bad_guy_in_yer_bar.mp3         bad guy in yer bar, by Baron Knoxburry
+
+licensing: Attribution-Noncommercial-Share Alike 3.0 US License
+
+http://freemusicarchive.org/music/Baron_Knoxburry/Ready_4_Battle_Run_Santyx_Error/16_Baron_Knoxburry_-_bad_guy_in_yer_bar
+
+====
+
+MMW.mp3                        MMW, by Mild Maynyrd
+
+licensing: Attribution-Noncommercial-Share Alike 3.0 US License
+
+http://freemusicarchive.org/music/Mild_Maynyrd/Dead_Herring/04_MMW
+
+================
