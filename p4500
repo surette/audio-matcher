@@ -28,7 +28,9 @@ class Audio:
     # returns opened mono wav file
     def createCanonicalForm(self):
         # extract the name of the file
-        name = self.fpath.rpartition('/')[2].split('.')[0] + "-" + str(uuid.uuid4().hex)
+        name = self.fpath.rpartition('/')[2].split('.')[0] + "-" + \
+        str(uuid.uuid4().hex)
+        
         path = self.fpath;
 
         # if a file is an mp3 but does not have a .mp3 extension,
@@ -64,7 +66,9 @@ class Audio:
     def convertToMonoWav(self, fpath, name):
         #convert mp3 to mono mp3
         mono = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + "_mono.mp3"
-        cmd = "/course/cs4500f13/bin/lame -a --silent -q2 -b 16 --resample 22050 " + fpath + " " + mono
+        cmd = "/course/cs4500f13/bin/lame -a --silent -q2 -b 16 " + \
+        "--resample 22050 " + fpath + " " + mono
+        
         subprocess.call(cmd, shell=True)
 
         #convert to wav
@@ -113,7 +117,8 @@ class Fingerprint:
 
         # LOOP INVARIANT:
         # 0 <= i <= nframes/framerate
-        # ffta is the combination of the magnitudes and frequencies of each chunk
+        # ffta is the combination of the magnitudes 
+        # and frequencies of each chunk
         for i in range(0, nframes/chunksize):
             wavData = audio.readframes(chunksize)
             unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
@@ -138,7 +143,8 @@ class Fingerprint:
 
         return fingerprint
 
-    # takes a chunk and returns a tuple of highest value within each of 4 buckets
+    # takes a chunk and returns a tuple of highest value 
+    # within each of 4 buckets
     # Returns: [#,#,#,#]
     def significantValues(self, sec):
         # bucket1: 0, 4000
@@ -188,12 +194,14 @@ def allMatch(list1, list2):
 
             if isSupportedFileType(path1) and isSupportedFileType(path2):
                 if match(path1, path2):
-                    if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
+                    if len(FPATH_DICT[path1].fingerprint) < \
+                    len(FPATH_DICT[path2].fingerprint):
                         print "MATCH " + name1 + " " + name2
                     else:
                         print "MATCH " + name2 + " " + name1
                 else:
-                    if len(FPATH_DICT[path1].fingerprint) < len(FPATH_DICT[path2].fingerprint):
+                    if len(FPATH_DICT[path1].fingerprint) < \
+                    len(FPATH_DICT[path2].fingerprint):
                         print "NO MATCH " + name1 + " " + name2
                     else:
                         print "NO MATCH " + name2 + " " + name1
@@ -227,12 +235,16 @@ def isSupportedFileType(fpath):
 
 def isWav(fpath):
     cmd = "file " + fpath
-    output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True).communicate()[0]
+    output = subprocess.Popen([cmd], stdout = subprocess.PIPE, \
+    stderr = subprocess.STDOUT, shell=True).communicate()[0]
+    
     return "WAVE" in output
 
 def isMp3(fpath):
     cmd = "file " + fpath
-    output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True).communicate()[0]
+    output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = \
+    subprocess.STDOUT, shell=True).communicate()[0]
+    
     return ("MPEG ADTS, layer III" in output) or ("MP3" in output)
 
 # make sure there is the correct number of arguments given
