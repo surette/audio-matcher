@@ -36,10 +36,10 @@ class Audio:
         # if a file is an mp3 but does not have a .mp3 extension,
         # create a file in the tmp directory that takes the input file and
         # changes its extension to .mp3
-        if isMp3(self.fpath) and self.fpath.rsplit('.')[0] != '.mp3':
+        if isMp3(path) and path.rsplit('.')[0] != '.mp3':
             path = self.toExtension(name, '.mp3')
 
-        if isWav(self.fpath) and self.fpath.rsplit('.')[0] != '.wav':
+        if isWav(path) and path.rsplit('.')[0] != '.wav':
             path = self.toExtension(name, '.wav')
 
         # check if any of the files is mp3 file. If it is, convert it to wav
@@ -290,6 +290,13 @@ def getPaths(flag, path):
         for (dirpath, dirnames, filenames) in os.walk(path):
             fnames = filenames
             fpaths = [os.path.join(path, name) for name in fnames]
+            # if there is a subdirectory in the target directory, print an error and 
+            # continue execution with any actual files found
+            if dirnames:
+                sys.stderr.write("ERROR: At least one subdirectory detected in " + \
+                    path + ". Files in subdirectories are not matched.\n")
+                EXIT_CODE = 12
+
             break
             
     return fpaths
@@ -403,4 +410,4 @@ if __name__ == '__main__':
 
     allMatch(fpaths1, fpaths2)
     
-    fancyExit("", 0)
+    fancyExit("", EXIT_CODE)
