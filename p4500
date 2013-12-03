@@ -8,7 +8,7 @@ import wave
 import struct
 import subprocess
 import uuid
-from mutagen.mp3 import MP3, HeaderNotFoundError
+from mutagen.mp3 import MP3
 
 
 # global variables
@@ -36,15 +36,24 @@ class Audio:
         # if a file is an mp3 but does not have a .mp3 extension,
         # create a file in the tmp directory that takes the input file and
         # changes its extension to .mp3
-        if isMp3(path) and path.rsplit('.')[0] != '.mp3':
+        if isMp3(path) and path.rsplit('.')[1] != 'mp3':
             path = self.toExtension(name, '.mp3')
 
-        if isWav(path) and path.rsplit('.')[0] != '.wav':
+        if isWav(path) and path.rsplit('.')[1] != 'wav':
             path = self.toExtension(name, '.wav')
 
         # check if any of the files is mp3 file. If it is, convert it to wav
-        if isMp3(path) or isWav(path):
-            wav_fpath = self.convertToMonoWav(path, name)
+
+        if isWav(path):
+            if self.emptyWav(path):
+                wav_fpath = path
+            else:
+                wav_fpath = self.convertToMonoWav(path, name)
+        elif isMp3(path):
+            if self.emptyMp3(path):
+                wav_fpath = self.converToWav(path, name)
+            else:
+                wav_fpath = self.convertToMonoWav(path, name) 
 
         # makes sure the files are actually wave files
         wav_file = self.open_wav_file(wav_fpath)
@@ -54,31 +63,47 @@ class Audio:
     # create a file in the tmp directory that takes the input file and
     # changes its extension to .mp3
     def toExtension(self, name, ext):
-        newPath = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + ext
+        newPath = TMP_FOLDER + name + ext
         cmd = "cp " + self.fpath + " " + newPath
 
         subprocess.call(cmd, shell=True)
 
         return newPath
+    
+    # determines if given wav file is empty
+    def emptyWav(self, path):
+        wav_file = self.open_wav_file(path)
+        
+        return wav_file.getnframes() == 0
+
+    # determines if given mp3 file is empty
+    def emptyMp3(self, path):
+        mp3_file = MP3(path)
+
+        return mp3_file.info.length <= 0.052125
 
     # Converts an audio file to a mono wav file using lame
     # RETURNS: the wav file's path
     def convertToMonoWav(self, fpath, name):
         #convert mp3 to mono mp3
-        mono = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + "_mono.mp3"
+        mono = TMP_FOLDER + name + "_mono.mp3"
         cmd = "/course/cs4500f13/bin/lame -a --silent -q2 -b 16 " + \
         "--resample 22050 " + fpath + " " + mono
         
         subprocess.call(cmd, shell=True)
 
         #convert to wav
-        newName = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + '.wav'
+        newPath = self.convertToWav(mono, name)
+        return newPath
+
+    # converts an audio mp3 to wav file using lame
+    def convertToWav(self, mono, name):
+        newPath = TMP_FOLDER + name + '.wav'
         cmd = "/course/cs4500f13/bin/lame --decode --silent -q2 " \
-        + mono + " " + newName
+        + mono + " " + newPath
 
         subprocess.call(cmd, shell=True)
-        # print "converted"
-        return newName
+        return newPath
 
     # opens wav file using wave audio library
     def open_wav_file(self, fpath):
@@ -88,7 +113,7 @@ class Audio:
         except wave.Error:
             fancyExit("File is not using a correct audio format", 3)
         except:
-            fancyExit("Error opening file ", 4)
+            fancyExit("Error opening file " + fpath, 4)
 
 # creates and stores identifying vector for input audio
 class Fingerprint:
@@ -400,7 +425,7 @@ def fancyExit(message, code):
     if message != "":
         sys.stderr.write("ERROR: " + message + "\n")
 
-    cleanTmp()
+    #cleanTmp()
     exit(code)
 
 if __name__ == '__main__':
