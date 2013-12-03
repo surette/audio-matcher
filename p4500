@@ -35,7 +35,7 @@ class Audio:
         # create a file in the tmp directory that takes the input file and
         # changes its extension to .mp3
         if isMp3(self.fpath) and self.fpath.rsplit('.')[0] != '.mp3':
-            path = self.toExtension(name, 'mp3')
+            path = self.toExtension(name, '.mp3')
 
         if isWav(self.fpath) and self.fpath.rsplit('.')[0] != '.wav':
             path = self.toExtension(name, '.wav')
@@ -84,7 +84,7 @@ class Audio:
         except wave.Error:
             fancyExit("File is not using a correct audio format", 3)
         except:
-            fancyExit("Error opening file " + fpath, 4)
+            fancyExit("Error opening file ", 4)
 
 # creates and stores identifying vector for input audio
 class Fingerprint:
