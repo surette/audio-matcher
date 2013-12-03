@@ -374,7 +374,9 @@ def closeRatio(val1,val2):
 
 # Custom Exit method for days
 def fancyExit(message, code):
-    sys.stderr.write("ERROR: " + message + "\n")
+    if message != "":
+        sys.stderr.write("ERROR: " + message + "\n")
+
     cleanTmp()
     exit(code)
 
@@ -385,4 +387,4 @@ if __name__ == '__main__':
 
     allMatch(fpaths1, fpaths2)
     
-    fancyExit(0)
+    fancyExit("", 0)
