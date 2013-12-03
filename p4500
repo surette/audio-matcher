@@ -13,7 +13,7 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 
 # global variables
 TOLERANCE = 1
-PERCENT_RATIO = 1.00
+PERCENT_RATIO = 0.60
 TMP_FOLDER = "/tmp/zaFile" + "-" + str(uuid.uuid4().hex) + "/"
 FPATH_DICT = dict()
 EXIT_CODE = 0
@@ -367,7 +367,7 @@ def closeRatio(val1,val2):
     else:
         ratio = val1/val2
 
-    print ratio
+    #print ratio
     if ratio < PERCENT_RATIO:
         return False
     return True
