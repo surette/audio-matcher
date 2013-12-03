@@ -13,7 +13,7 @@ from mutagen.mp3 import MP3, HeaderNotFoundError
 
 # global variables
 TOLERANCE = 1
-PERCENT_RATIO = 0.40
+PERCENT_RATIO = 1.00
 TMP_FOLDER = "/tmp/zaFile" + "-" + str(uuid.uuid4().hex) + "/"
 FPATH_DICT = dict()
 EXIT_CODE = 0
@@ -330,17 +330,17 @@ def isSubset(list1, list2):
         if len(list1) > len(list2) - i2:
             break
 
-        if distance(val1, val2) <= TOLERANCE:
-            count = checkSequence(list1, list2, i2) + 1
-            if closeRatio(count, len(list1)):
-                return True
+        #if distance(val1, val2) <= TOLERANCE:
+        count = checkSequence(list1, list2, i2) + 1
+        if closeRatio(count, len(list1)):
+            return True
 
     return False
 
 def checkSequence(list1, list2, ind):
     count = 0
-    for i, j in enumerate(range(ind+1, len(list1)+ind)):
-        if distance(list1[i+1], list2[j]) <= TOLERANCE:
+    for i, j in enumerate(range(ind, len(list1)+ind)):
+        if distance(list1[i], list2[j]) <= TOLERANCE:
             count = count + 1
 
     return count
@@ -367,7 +367,7 @@ def closeRatio(val1,val2):
     else:
         ratio = val1/val2
 
-    # print ratio
+    print ratio
     if ratio < PERCENT_RATIO:
         return False
     return True
