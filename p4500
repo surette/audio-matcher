@@ -56,7 +56,7 @@ class Audio:
                 wav_fpath = self.convertToMonoWav(path, name) 
 
         # makes sure the files are actually wave files
-        wav_file = self.open_wav_file(path)
+        wav_file = self.open_wav_file(wav_fpath)
 
         return wav_file
 
