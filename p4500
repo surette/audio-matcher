@@ -28,25 +28,35 @@ class Audio:
     def createCanonicalForm(self):
         # extract the name of the file
         name = self.fpath.rpartition('/')[2].split('.')[0] + "-" + str(uuid.uuid4().hex)
+        path = self.fpath;
+
+        # if a file is an mp3 but does not have a .mp3 extension,
+        # create a file in the tmp directory that takes the input file and
+        # changes its extension to .mp3
+        if isMp3(self.fpath) and self.fpath.rsplit('.')[0] != '.mp3':
+            path = self.toExtension(name, 'mp3')
+
+        if isWav(self.fpath) and self.fpath.rsplit('.')[0] != '.wav':
+            path = self.toExtension(name, '.wav')
 
         # check if any of the files is mp3 file. If it is, convert it to wav
-        if(self.isMp3(self.fpath) or self.open_wav_file(self.fpath)):
-            wav_fpath = self.convertToMonoWav(self.fpath, name)
+        if isMp3(path) or isWav(path):
+            wav_fpath = self.convertToMonoWav(path, name)
 
-            # makes sure the files are actually wave files
+        # makes sure the files are actually wave files
         wav_file = self.open_wav_file(wav_fpath)
 
         return wav_file
 
-    # checks whether the file is mp3 or not
-    def isMp3(self, fpath):
-        try:
-            audio = MP3(fpath)
-            return not audio.info.sketchy
-        except HeaderNotFoundError:
-            return False
-            # sys.stderr.write("ERROR: File "+fpath+" is unsupported\n")
-            # fancyExit(5)
+    # create a file in the tmp directory that takes the input file and
+    # changes its extension to .mp3
+    def toExtension(self, name, ext):
+        newPath = TMP_FOLDER + name + "_" + str(uuid.uuid4().hex) + ext
+        cmd = "cp " + self.fpath + " " + newPath
+
+        subprocess.call(cmd, shell=True)
+
+        return newPath
 
     # Converts an audio file to a mono wav file using lame
     # RETURNS: the wav file's path
@@ -213,12 +223,17 @@ def getFingerprint(fpath):
     return FPATH_DICT[fpath]
 
 def isSupportedFileType(fpath):
+    return isWav(fpath) or isMp3(fpath)
+
+def isWav(fpath):
     cmd = "file " + fpath
     output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True).communicate()[0]
-    if(("MPEG ADTS, layer III" in output) or ("MP3" in output) or ("WAVE audio" in output)):
-        return True
-    else:
-        return False
+    return "WAVE" in output
+
+def isMp3(fpath):
+    cmd = "file " + fpath
+    output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True).communicate()[0]
+    return ("MPEG ADTS, layer III" in output) or ("MP3" in output)
 
 # make sure there is the correct number of arguments given
 def verifyArgs():
