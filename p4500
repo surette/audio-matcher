@@ -82,10 +82,10 @@ class Audio:
             return wav_file
         except wave.Error:
             sys.stderr.write("ERROR: File is not using a correct audio format\n")
-            exit(3)
+            fancyExit(3)
         except:
-            sys.stderr.write("ERROR: Error opening file: " + fpath + "\n")
-            exit(4)
+            sys.stderr.write("ERROR: Error opening file or file is blank\n")
+            fancyExit(4)
 
 # creates and stores identifying vector for input audio
 class Fingerprint:
@@ -241,18 +241,23 @@ def verifyArgs():
     # Verify that there are the correct number of arguments
     if len(sys.argv) != 5:
         sys.stderr.write("ERROR: Wrong number of arguments\n")
-        exit(1)
+        fancyExit(1)
     # Verify that all the flags are correct
     if ((sys.argv[1] != '-f' and sys.argv[1] != '-d') or 
        (sys.argv[3] != '-f' and sys.argv[3] != '-d')):
         print sys.argv[1] + " " + sys.argv[3]
         sys.stderr.write("ERROR: Incorrect Flags\n")
-        exit(3)
+        fancyExit(3)
 
-# make sure that the directory in tmp exists, create it otherwise
-def verifyTmp():
-    if not os.path.exists(TMP_FOLDER):
-        os.mkdir(TMP_FOLDER)
+    if   (sys.argv[1] == '-f'):
+        verifyPathToFile(sys.argv[2])
+    elif (sys.argv[1] == '-d'):
+        verifyPathToDir(sys.argv[2])
+
+    if   (sys.argv[3] == '-f'):
+        verifyPathToFile(sys.argv[4])
+    elif (sys.argv[3] == '-d'):
+        verifyPathToDir(sys.argv[4])
 
 # create lists of filepaths of inputs
 def parseArgs():
@@ -278,7 +283,11 @@ def getPaths(flag, path):
             break
             
     return fpaths
-
+    
+# make sure that the directory in tmp exists, create it otherwise
+def verifyTmp():
+    if not os.path.exists(TMP_FOLDER):
+        os.mkdir(TMP_FOLDER)
 
 # clean the tmp directory by removing any tmp files in our tmp folder
 def cleanTmp():
@@ -288,7 +297,12 @@ def cleanTmp():
 def verifyPathToFile(path):
     if not os.path.isfile(path):
         sys.stderr.write("ERROR: Path "+path+" is invalid/is not a file\n")
-        exit(2)
+        fancyExit(2)
+
+def verifyPathToDir(path):
+    if not os.path.isdir(path):
+        sys.stderr.write("ERROR: Path "+path+" is invalid/is not a Directory\n")
+        fancyExit(2)
 
 # gets the format of the file based on size of sample and sample width
 #  8 bits: size + "b"
@@ -362,12 +376,16 @@ def closeRatio(val1,val2):
         return False
     return True
 
+# Custom Exit method for days
+def fancyExit(code):
+    cleanTmp()
+    exit(code)
+
 if __name__ == '__main__':
-    verifyArgs()
     verifyTmp()
+    verifyArgs()
     fpaths1, fpaths2 = parseArgs()
 
     allMatch(fpaths1, fpaths2)
     
-    cleanTmp()
-    exit(0)
+    fancyExit(0)
