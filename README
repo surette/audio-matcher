@@ -3,10 +3,16 @@ Dan McNamara - dmcnamara1@gmail.com
 Mohammad Al Yahya - mhmdfy@ccs.neu.edu
 Bryan Swords - bzswords@gmail.com
 
-To run the code, just execute it using ./p4500 <pathname> <pathname>
+To run the code, just execute it using 
+./p4500 [-d|-f] <directoryname|pathname> [-d|-f] <directoryname|pathname>
 p4500 is a python file that should be executable on any Linux machine.
+
+Use ./p4500 -f <filename> to pass a file, and ./p4500 -d <directoryname> to pass a directory of files.
 
 Third-party software:
 numpy   - is used to get frequency and magnitude by using fft
-wave    - is used to verify that the path is to a .wav file, and opens it.
-struct  - is used for data processing and formating.
+wave    - is used to verify that the path is to a wav file, and opens it
+struct  - is used for data processing and formatting
+mutagen - is used to check whether or not an mp3 file is empty
+
+Our github repo: https://github.com/surette/softwaredev/

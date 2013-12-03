@@ -315,11 +315,11 @@ def getPaths(flag, path):
         for (dirpath, dirnames, filenames) in os.walk(path):
             fnames = filenames
             fpaths = [os.path.join(path, name) for name in fnames]
-            # if there is a subdirectory in the target directory, print an error and 
-            # continue execution with any actual files found
+            # if there is a subdirectory in the target directory, print 
+            # an error and continue execution with any actual files found
             if dirnames:
                 printError("At least one subdirectory detected in " + path + \
-                    ". Files in subdirectories are not matched.", 12)
+                ". Files in subdirectories are not matched.", 12)
             break
             
     return fpaths
