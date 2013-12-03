@@ -337,8 +337,12 @@ def isSubset(list1, list2):
 
     return False
 
+# checks if list1 is close to list2 starting from ind 
 def checkSequence(list1, list2, ind):
     count = 0
+    
+    # i is the index for list 1, it starts from 0 to len(list1)
+    # j is the index for list 2, it starts from ind to len(list1)+ind 
     for i, j in enumerate(range(ind, len(list1)+ind)):
         if distance(list1[i], list2[j]) <= TOLERANCE:
             count = count + 1
