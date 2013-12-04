@@ -14,5 +14,6 @@ numpy   - is used to get frequency and magnitude by using fft
 wave    - is used to verify that the path is to a wav file, and opens it
 struct  - is used for data processing and formatting
 mutagen - is used to check whether or not an mp3 file is empty
+lame    - is used for converting audio formats
 
 Our github repo: https://github.com/surette/softwaredev/
