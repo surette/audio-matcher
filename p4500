@@ -11,6 +11,7 @@ import uuid
 from mutagen.mp3 import MP3
 
 
+
 # Global Variables
 
 # How many hertz away to be considered a match
@@ -40,9 +41,12 @@ class Audio:
         # wav opened version of audio file in canonical form
         self.wavData = self.createCanonicalForm() 
 
-    # performs checks and mono conversions on audio file, 
-    # returns opened mono wav file
+    # Obtains file from class variable fpath
+    # Performs checks and mono conversions on audio file, 
+    # Returns opened audio file in canonical form:
+    # Monaural 16-bit Wav File Sample Rate 22,050 Hz
     def createCanonicalForm(self):
+
         # extract the name of the file
         name = self.fpath.rpartition('/')[2].split('.')[0] + "-" + \
         str(uuid.uuid4().hex)
@@ -54,12 +58,12 @@ class Audio:
         # changes its extension to .mp3
         if isMp3(path) and path.rsplit('.')[1] != 'mp3':
             path = self.toExtension(name, '.mp3')
-
+        
+        # same process, but for wav files without .wav extension
         if isWav(path) and path.rsplit('.')[1] != 'wav':
             path = self.toExtension(name, '.wav')
 
-        # check if any of the files is mp3 file. If it is, convert it to wav
-
+        # check for empty audio files and handle them
         if isWav(path):
             if self.emptyWav(path):
                 wav_fpath = path
@@ -71,13 +75,12 @@ class Audio:
             else:
                 wav_fpath = self.convertToMonoWav(path, name) 
 
-        # makes sure the files are actually wave files
         wav_file = self.open_wav_file(wav_fpath)
 
         return wav_file
 
-    # create a file in the tmp directory that takes the input file and
-    # changes its extension to .mp3
+    # Create a file in the tmp directory that takes the input file and
+    # changes its extension to the extension given
     def toExtension(self, name, ext):
         newPath = TMP_FOLDER + name + ext
         cmd = "cp " + self.fpath + " " + newPath
@@ -99,8 +102,9 @@ class Audio:
         return mp3_file.info.length <= 0.052125
 
     # Converts an audio file to a mono wav file using lame
-    # RETURNS: the wav file's path
+    # RETURNS: the mono wav file's path
     def convertToMonoWav(self, fpath, name):
+
         #convert mp3 to mono mp3
         mono = TMP_FOLDER + name + "_mono.mp3"
         cmd = "/course/cs4500f13/bin/lame -a --silent -q2 -b 16 " + \
@@ -108,19 +112,23 @@ class Audio:
         
         subprocess.call(cmd, shell=True)
 
-        #convert to wav
         return self.convertToWav(mono, name)
 
     # converts an audio mp3 to wav file using lame
-    def convertToWav(self, mono, name):
+    def convertToWav(self, fpath, name):
+
+        # convert to wav
         newPath = TMP_FOLDER + name + '.wav'
         cmd = "/course/cs4500f13/bin/lame --decode --silent -q2 " \
-        + mono + " " + newPath
+        + fpath + " " + newPath
 
         subprocess.call(cmd, shell=True)
+
         return newPath
 
     # opens wav file using wave audio library
+    # returns opened wav file
+    # Prints error to stderr if it wasn't able to open it
     def open_wav_file(self, fpath):
         try:
             wav_file = wave.open(fpath, 'r')
@@ -130,52 +138,54 @@ class Audio:
         except:
             fancyExit("Error opening file ", 4)
 
-# creates and stores identifying vector for input audio
+# Represents a fingerprint structure that contains audio fingerprint
+# Creates and stores identifying vector for input audio
 class Fingerprint:
     def __init__(self, fpath, wavData):
+        # full, original file path of audio file
         self.fpath = fpath
+        # list of tuples for the significant frequencies
         self.fingerprint = self.processFingerprint(wavData)
+        # attributes of the audio file
         (self.nchannels, self.sampwidth, self.framerate, self.nframes, \
         self.comptype, self.compname) = wavData.getparams()
 
-    # creates fingerprint from wav data
+    # Creates fingerprint from wav data
     def processFingerprint(self, wavData):
+
         fft = self.fftconvert(wavData)
 
         return self.createFingerprints(fft)
 
-    # runs the fft on smaller chunks of the input audio
+    # Runs the fft on smaller chunks of the input audio
+    # Returns a list of frequencies and their associated magnitudes
     def fftconvert(self, audio):
-        # store attributes of wav file
-        (nchannels, sampwidth, framerate, nframes, comptype, compname) \
-        = audio.getparams()
 
         # the result array of fft for each tenth of a second
         ffta = []
-        chunksize = framerate/10
+        chunksize = self.framerate/10
 
         # LOOP INVARIANT:
         # 0 <= i <= nframes/framerate
         # ffta is the combination of the magnitudes 
         # and frequencies of each chunk
-        for i in range(0, nframes/chunksize):
+        for i in range(0, self.nframes/chunksize):
             wavData = audio.readframes(chunksize)
-            unPack = wave.struct.unpack_from(getFormat(chunksize, sampwidth), \
+            unPack = wave.struct.unpack_from(getFormat(chunksize, self.sampwidth), \
             wavData)
 
             mags = abs(np.fft.fft(unPack))
             freqs = abs(np.fft.fftfreq(chunksize)*chunksize)
             ffta.append(zip(mags, freqs))
 
-        # return the array of frequencies
         return ffta
 
     # return an array of tuples consisting of the significant values at each
-    # second in the file
+    # chunk in the file
     def createFingerprints(self, fft):
         fingerprint = []
 
-        # tup is a tuple of the highest values at each second
+        # tup is a tuple of the highest values at each section
         for sec in fft:
             tup = self.significantValues(sec)
             fingerprint.append(tup)
@@ -195,14 +205,15 @@ class Fingerprint:
         bound2 = 8000
         bound3 = 12000
         bound4 = 15000
-
+        
+        # keeps track of highest frequency associated with highest magnitude
         max_bucket1, max_bucket2, max_bucket3, max_bucket4 = \
         0, 0, 0, 0
-        
+        # keeps track of highest magnitude
         max_mag_bucket1, max_mag_bucket2, max_mag_bucket3, max_mag_bucket4 = \
         0, 0, 0, 0
 
-        # loop through the chunk, determining the the magnitude is a max in
+        # loop through the chunk, determining the magnitude is a max in
         # any of the buckets
         for mag, freq in sec:
             if bound0 <= freq < bound1:
@@ -224,19 +235,20 @@ class Fingerprint:
 
         return max_bucket1, max_bucket2, max_bucket3, max_bucket4
 
-# check all matches between list1 and list2
+# Check all matches between list1 and list2
 def allMatch(list1, list2):
+
     for path1 in list1:
         for path2 in list2:
             if isSupportedFileType(path1) and isSupportedFileType(path2):
-                supportedFiles(path1, path2)
+                masterMatcher(path1, path2)
             else:
                 printError("Not a Supported File Type", 10)
 
 # If the files are supported, we check whether they match or not,
 # if they match, we print "MATCH" along with the shorter file
 # followed by the longer file. Otherwise, it prints "NO MATCH"
-def supportedFiles(path1, path2):
+def masterMatcher(path1, path2):
     name1 = path1.rpartition('/')[2]
     name2 = path2.rpartition('/')[2]
 
@@ -249,20 +261,27 @@ def supportedFiles(path1, path2):
     else:
        print "NO MATCH"
  
-# checks to see if the two wav files are exactly the same
-def match(fpath1 = None, fpath2 = None):
+# Checks to see if the two wav files are a match
+def match(fpath1, fpath2):
+
+    # makes sure the files exist
     verifyPathToFile(fpath1)
     verifyPathToFile(fpath2)
 
     fingerprint1 = getFingerprint(fpath1)
     fingerprint2 = getFingerprint(fpath2)
 
-    # compare the two arrays of frequencies
+    # returns the result of comparing the two fingerprints
     return compare(fingerprint1.fingerprint, fingerprint2.fingerprint)
 
 # If the file path is not in the dictionary, create it and add it,
 # then return the fingerprint of the file path.
 def getFingerprint(fpath):
+    
+    # MEMOIZATION
+    # Checks if filepath exists in the cache
+    # If it doesn't, it computes it, then stores in dictionary
+    # Otherwise, obtain it from dictionary
     if fpath not in FPATH_DICT:
         audio = Audio(fpath)
         fingerprint = Fingerprint(fpath, audio.wavData)
@@ -270,27 +289,32 @@ def getFingerprint(fpath):
     
     return FPATH_DICT[fpath]
 
+# Checks if file at given filepath is supported
 def isSupportedFileType(fpath):
+
     return isWav(fpath) or isMp3(fpath)
 
+# Checks if file at given filepath is a wav file
 def isWav(fpath):
+
     cmd = "file " + fpath
     output = subprocess.Popen([cmd], stdout = subprocess.PIPE, \
     stderr = subprocess.STDOUT, shell=True).communicate()[0]
     
     return "WAVE" in output
 
+# Checks if file at given filepath is an mp3 file
 def isMp3(fpath):
+
     cmd = "file " + fpath
     output = subprocess.Popen([cmd], stdout = subprocess.PIPE, stderr = \
     subprocess.STDOUT, shell=True).communicate()[0]
     
     return ("MPEG ADTS, layer III" in output) or ("MP3" in output)
 
-# make sure there is the correct number of arguments given
+# Verifies arguments are correct format
 def verifyArgs():
 
-    # Verify that there are the correct number of arguments
     if len(sys.argv) != 5:
         fancyExit("Wrong number of arguments", 1)
 
@@ -298,7 +322,8 @@ def verifyArgs():
     if ((sys.argv[1] != '-f' and sys.argv[1] != '-d') or 
        (sys.argv[3] != '-f' and sys.argv[3] != '-d')):
         fancyExit("Incorrect Flags", 3)
-
+    
+    # makes sure flags match with proper input
     if   (sys.argv[1] == '-f'):
         verifyPathToFile(sys.argv[2])
     elif (sys.argv[1] == '-d'):
@@ -309,7 +334,7 @@ def verifyArgs():
     elif (sys.argv[3] == '-d'):
         verifyPathToDir(sys.argv[4])
 
-# create lists of filepaths of inputs
+# Create lists of filepaths of inputs
 def parseArgs():
 
     # hold names of all filepaths to be compared
@@ -318,7 +343,7 @@ def parseArgs():
 
     return fpaths1, fpaths2
 
-# Purpose: obtains filepaths from the locations specificed in the input
+# Obtains filepaths from the locations specificed in the input
 def getPaths(flag, path):
 
     fpaths = list()
@@ -339,29 +364,34 @@ def getPaths(flag, path):
             
     return fpaths
     
-# Purpose: makes sure that the directory in tmp exists, create it otherwise
+# Makes sure that the directory in tmp exists, create it otherwise
 def verifyTmp():
+
     if not os.path.exists(TMP_FOLDER):
         os.mkdir(TMP_FOLDER)
 
-# Purpose: clean the tmp directory by removing any tmp files in our tmp folder
+# Clean the tmp directory by removing any tmp files in our tmp folder
 def cleanTmp():
+
     shutil.rmtree(TMP_FOLDER)
 
-# Purpose: make sure the input is a real file
+# Make sure the input is a real file
 def verifyPathToFile(path):
+
     if not os.path.isfile(path):
         fancyExit("Path " + path + " is invalid/is not a file", 2)
 
-# Purpose: make sure the input is a real directory
+# Make sure the input is a real directory
 def verifyPathToDir(path):
+
     if not os.path.isdir(path):
         fancyExit("Path " + path + "is invalid/is not a Directory", 2)
 
-# Purpose: gets the format of the file based on size of sample and sample width
+# Gets the format of the file based on size of sample and sample width
 #  8 bits: size + "b"
 # 16 bits: size + "h"
 def getFormat(sampsize, sampwidth):
+
     fmt = str(sampsize)
     if sampwidth == 1:
         fmt = fmt + 'b'
@@ -369,10 +399,11 @@ def getFormat(sampsize, sampwidth):
         fmt = fmt + 'h'
     return fmt
 
-# Purpose: Compares the two fingerprints to determine if there is a match
+# Compares the two fingerprints to determine if there is a match
 # fprint1 and fprint2 are arrays of tuples of significant freqs defined in
 # createFingerprints
 def compare(fprint1, fprint2):
+
     # if both inputs are blank they are a match 
     if len(fprint1) == 0  and len(fprint2) == 0:
         return True
@@ -385,14 +416,18 @@ def compare(fprint1, fprint2):
     else:
         return isSubset(fprint2, fprint1)
 
-# Purpose: Checks to see if the smaller file is contained in the larger
+# Checks to see if the smaller file is contained in the larger
 # Called by compare
 # assumes list1 is the child/subset
 def isSubset(list1, list2):
+
     count = 0
     val1 = list1[0]
-
+    
+    # loops through the larger list
+    # compares it with the smaller list
     for i2, val2 in enumerate(list2):
+
         # check if there are enough pieces for it to be a match
         if len(list1) > len(list2) - i2:
             break
@@ -404,8 +439,9 @@ def isSubset(list1, list2):
 
     return False
 
-# checks if list1 is close to list2 starting from ind 
+# Checks if list1 is close to list2 starting from ind 
 def checkSequence(list1, list2, ind):
+
     count = 0
     
     # i is the index for list 1, it starts from 0 to len(list1)
@@ -416,53 +452,64 @@ def checkSequence(list1, list2, ind):
 
     return count
 
-# distance function that uses euclidean formula to get the
-# distance between the two given tuples
-# - assumes tuple1 and tuple2 are of the same size
+# Uses euclidean formula to get the distance between the two given tuples
+# assumes tuple1 and tuple2 are of the same size
 def distance(tuple1, tuple2):
+
     underroot = 0
+
     for i in range(0, len(tuple1)): 
         underroot = underroot + math.pow(tuple1[i] - tuple2[i], 2)
     
     dist = math.sqrt(underroot)
-    #print(dist)
+
     return dist
 
-# creates tolerance for acceptance as a derived file using a ratio
+# Creates tolerance for acceptance as a derived file PERCENT_RATIO
 def closeRatio(val1,val2):
+
     val1 = float(val1)
     val2 = float(val2)
     ratio = 1.0
+
     if val1 > val2:
         ratio = val2/val1
     else:
         ratio = val1/val2
 
-    if ratio < PERCENT_RATIO:
-        return False
-    return True
+    return not ratio < PERCENT_RATIO
 
 # Prints an error to standard error, but does not terminate yet.
 # instead it changes the global variable for exit code.
 def printError(message, code):
+
     if message != "":
         sys.stderr.write("ERROR: " + message + "\n")
 
     EXIT_CODE = code
 
-# Custom Exit method for days
+# Custom Exit method
+# deletes tmp folder before exiting
 def fancyExit(message, code):
+
     if message != "":
         sys.stderr.write("ERROR: " + message + "\n")
 
     cleanTmp()
     exit(code)
 
+# Main
 if __name__ == '__main__':
+
+    # Verify all input
     verifyTmp()
     verifyArgs()
-    fpaths1, fpaths2 = parseArgs()
 
+    # Sends lists of filepaths to parseArgs
+    fpaths1, fpaths2 = parseArgs()
+    
+    # Determines matches between fpaths
     allMatch(fpaths1, fpaths2)
     
+    # Exits
     fancyExit("", EXIT_CODE)
