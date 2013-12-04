@@ -144,11 +144,11 @@ class Fingerprint:
     def __init__(self, fpath, wavData):
         # full, original file path of audio file
         self.fpath = fpath
+        # attributes of the audio file
+        (self.nchannels, self.sampwidth, self.framerate, self.nframes,
+        self.comptype, self.compname) = wavData.getparams()
         # list of tuples for the significant frequencies
         self.fingerprint = self.processFingerprint(wavData)
-        # attributes of the audio file
-        (self.nchannels, self.sampwidth, self.framerate, self.nframes, \
-        self.comptype, self.compname) = wavData.getparams()
 
     # Creates fingerprint from wav data
     def processFingerprint(self, wavData):
