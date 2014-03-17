@@ -1,7 +1,7 @@
-Scott Surette - surette@ccs.neu.edu
-Dan McNamara - dmcnamara1@gmail.com
-Mohammad Al Yahya - mhmdfy@ccs.neu.edu
-Bryan Swords - bzswords@gmail.com
+Scott Surette
+Dan McNamara
+Mohammad Al Yahya
+Bryan Swords
 
 To run the code, just execute it using 
 ./p4500 [-d|-f] <directoryname|pathname> [-d|-f] <directoryname|pathname>
